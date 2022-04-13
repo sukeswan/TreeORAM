@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <iterator>
+#include <vector>
 #include <map>
 #include <cmath> 
 #include <string>
@@ -8,7 +9,10 @@ using namespace std;
 
 class Client; 
 class Server; 
-class Block; 
+class Block;
+class Bucket;
+class Node; 
+class Tree; 
 
 class Client{
     public: 
@@ -42,9 +46,15 @@ class Server{
 
 class Block{
     public:
-    int uid; // unique identifier
-    int leaf; // leaf each block is pointing to 
-    string data;
+        int uid; // unique identifier
+        int leaf; // leaf each block is pointing to 
+        string data;
+
+    Block(){ // need default constructor for Bucket
+        uid = 0;
+        leaf = 0; 
+        data = "Dummy"; 
+    }
 
     Block(int uidP, int leafP, string dataP){
         uid = uidP;
@@ -59,10 +69,117 @@ class Block{
 
 };
 
+class Bucket{
+    public: 
+        int size; 
+        Block* blocks;
+    
+    Bucket(int sizeP){
+        size = sizeP;
+        blocks = new Block[size]; 
+    }
+
+    Bucket(){ // need default contructor for node
+
+
+    }
+
+    void printBucket(){
+
+        cout<< "\n--- BUCKET w/ size " << size << " --- " << endl; 
+        for (int i = 0; i < size; i++){
+            Block current = blocks[i];
+            current.printBlock();
+
+        }
+
+        cout << "--------------------------" << endl;
+    }
+
+};
+
+class Node{
+    public:
+        Node* left; 
+        Node* right; 
+        Bucket bucket;
+        int level; 
+        bool isLeaf; 
+        int nodeId; 
+    
+    Node(){
+        isLeaf = true; 
+    }
+
+    void printNode(){
+
+        if (isLeaf){
+            cout << "\n --- NODE at level " << level << " --- " << endl; 
+            bucket.printBucket();
+            cout << " ^^^ LEAF ^^^ " <<endl; 
+        }
+            
+        else{
+            cout << "\n --- NODE at level " << level << " --- " << endl; 
+            bucket.printBucket();
+            left->printNode(); 
+            right->printNode();
+        }
+        
+        
+    }
+};
+
+class Tree{
+    public:
+        int size; 
+        int levels; 
+        int leafNums;
+        Node* root;
+        int bucketSize;
+
+    Tree(int N){
+        size = N;
+        levels = log2(N);
+        leafNums = N;
+        bucketSize = log2(N) + 1;
+        root = build(levels);
+    }
+
+    Node* build(int levelsP){
+        Node newNode; 
+        root = &newNode; 
+
+        if (levelsP == 0){
+            root->isLeaf = true; 
+            return root;
+        }
+             
+        else{
+            root->isLeaf = false; 
+            root->left = build(levelsP-1);
+            root->right = build(levelsP-1);
+            return root; 
+        }
+        
+    }
+
+    void printTree(){
+        cout << "\n --- TREE of size " << size << " --- " << endl;
+        root->printNode();
+    }
+};
+
+// string toBin(int base){
+
+    
+
+
+// }
 
 
 int main(){
     cout << "hello world" << endl;
-
-
-}
+    Tree tree(8); 
+    tree.printTree(); 
+    }   
