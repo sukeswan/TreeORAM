@@ -7,12 +7,15 @@
 #include <string>
 using namespace std;
 
+#define BUCKETSIZE 4
+#define N 8
+
 class Client; 
 class Server; 
 class Block;
 class Bucket;
 class Node; 
-class Tree; 
+// class Tree; 
 
 class Client{
     public: 
@@ -51,7 +54,7 @@ class Block{
         string data;
 
     Block(){ // need default constructor for Bucket
-        uid = 0;
+        uid = rand();
         leaf = 0; 
         data = "Dummy"; 
     }
@@ -72,24 +75,22 @@ class Block{
 class Bucket{
     public: 
         int size; 
-        Block* blocks;
+        Block blocks[BUCKETSIZE];
     
-    Bucket(int sizeP){
-        size = sizeP;
-        blocks = new Block[size]; 
-    }
+     Bucket(){
+        size = BUCKETSIZE;
 
-    Bucket(){ // need default contructor for node
-
-
+        for (int i = 0; i < size; i++){
+            Block newBlock; 
+            blocks[i] = newBlock; 
+        }
     }
 
     void printBucket(){
 
         cout<< "\n--- BUCKET w/ size " << size << " --- " << endl; 
         for (int i = 0; i < size; i++){
-            Block current = blocks[i];
-            current.printBlock();
+            blocks[i].printBlock();
 
         }
 
@@ -103,83 +104,96 @@ class Node{
         Node* left; 
         Node* right; 
         Bucket bucket;
-        int level; 
         bool isLeaf; 
-        int nodeId; 
-    
+
     Node(){
-        isLeaf = true; 
+        isLeaf = true;
     }
 
     void printNode(){
 
         if (isLeaf){
-            cout << "\n --- NODE at level " << level << " --- " << endl; 
+            cout << "\n --- NODE --- " << endl; 
             bucket.printBucket();
-            cout << " ^^^ LEAF ^^^ " <<endl; 
+            cout << " ^^^ LEAF ^^^ " <<endl;
         }
             
         else{
-            cout << "\n --- NODE at level " << level << " --- " << endl; 
+            cout << "\n --- NODE --- " << endl; 
             bucket.printBucket();
             left->printNode(); 
             right->printNode();
         }
         
-        
     }
 };
 
-class Tree{
-    public:
-        int size; 
-        int levels; 
-        int leafNums;
-        Node* root;
-        int bucketSize;
+// class Tree{
+//     public:
+//         int size; 
+//         int levels; 
+//         int leafNums;
+//         Node root;
+//         int bucketSize;
 
-    Tree(int N){
-        size = N;
-        levels = log2(N);
-        leafNums = N;
-        bucketSize = log2(N) + 1;
-        root = build(levels);
-    }
+//     Tree(int N){
+//         size = N;
+//         levels = log2(N);
+//         leafNums = N;
+//         bucketSize = log2(N) + 1;
+//         root = build(levels);
+//     }
 
-    Node* build(int levelsP){
-        Node newNode; 
-        root = &newNode; 
-
-        if (levelsP == 0){
-            root->isLeaf = true; 
-            return root;
-        }
+//     Node build(int levelsP){
+//         Node root;
+//         if (levelsP == 0){
+//             root.isLeaf = true; 
+//             return root;
+//         }
              
-        else{
-            root->isLeaf = false; 
-            root->left = build(levelsP-1);
-            root->right = build(levelsP-1);
-            return root; 
-        }
+//         else{
+//             root.isLeaf = false; 
+//             root.left = &(build(levelsP-1));
+//             root.right = &(build(levelsP-1));
+//             return root; 
+//         }
         
-    }
+//     }
 
-    void printTree(){
-        cout << "\n --- TREE of size " << size << " --- " << endl;
-        root->printNode();
-    }
-};
-
-// string toBin(int base){
-
-    
-
-
-// }
-
+//     void printTree(){
+//         cout << "\n --- TREE of size " << size << " --- " << endl;
+//         root.printNode();
+//     }
+// };
 
 int main(){
     cout << "hello world" << endl;
-    Tree tree(8); 
-    tree.printTree(); 
-    }   
+    //Tree tree(8); 
+    //tree.printTree(); 
+
+//     Node root; 
+//     Node left; 
+//     Node right; 
+
+//     root.isLeaf = false; 
+
+//     root.left = &left; 
+//     root.right = &right; 
+
+//     root.printNode(); 
+//    // left.printNode(); 
+//     //right.printNode(); 
+
+    Node n1; 
+    n1.printNode();
+
+    Node n2; 
+    Node n3; 
+
+    n1.isLeaf = false; 
+    n1.left = &n2;
+    n1.right = &n3;
+
+    n1.printNode();
+
+}   
