@@ -8,7 +8,7 @@
 using namespace std;
 
 #define BUCKETSIZE 4
-#define N 8
+
 
 class Client; 
 class Server; 
@@ -54,7 +54,7 @@ class Block{
         string data;
 
     Block(){ // need default constructor for Bucket
-        uid = rand();
+        uid = 0;
         leaf = 0; 
         data = "Dummy"; 
     }
@@ -128,48 +128,47 @@ class Node{
     }
 };
 
-// class Tree{
-//     public:
-//         int size; 
-//         int levels; 
-//         int leafNums;
-//         Node root;
-//         int bucketSize;
+class Tree{
+    public:
+        int size; 
+        int levels; 
+        int leafNums;
+        Node* root;
+        int bucketSize;
 
-//     Tree(int N){
-//         size = N;
-//         levels = log2(N);
-//         leafNums = N;
-//         bucketSize = log2(N) + 1;
-//         root = build(levels);
-//     }
+    
+    Tree(int N) {
+        size = N;
+        levels = log2(N);
+        leafNums = N;
+        bucketSize = log2(N) + 1;
+        root = buildRec(levels);
+    }
 
-//     Node build(int levelsP){
-//         Node root;
-//         if (levelsP == 0){
-//             root.isLeaf = true; 
-//             return root;
-//         }
-             
-//         else{
-//             root.isLeaf = false; 
-//             root.left = &(build(levelsP-1));
-//             root.right = &(build(levelsP-1));
-//             return root; 
-//         }
-        
-//     }
+    Node* buildRec(int levelsP){
+        Node* root = new Node(); 
+        if (levelsP ==0){
+            root->isLeaf = true; 
+            return root;
+        }
+        else{
+            root->isLeaf = false; 
+            root->left = buildRec(levelsP-1);
+            root->right = buildRec(levelsP-1);
+            return root; 
+        }
+    }
 
-//     void printTree(){
-//         cout << "\n --- TREE of size " << size << " --- " << endl;
-//         root.printNode();
-//     }
-// };
+    void printTree(){
+        cout << "\n --- TREE of size " << size << " --- " << endl;
+        root->printNode();
+    }
+};
 
 int main(){
     cout << "hello world" << endl;
-    //Tree tree(8); 
-    //tree.printTree(); 
+    Tree tree(4); 
+    tree.printTree(); 
 
 //     Node root; 
 //     Node left; 
@@ -184,16 +183,16 @@ int main(){
 //    // left.printNode(); 
 //     //right.printNode(); 
 
-    Node n1; 
-    n1.printNode();
+    // Node n1; 
+    // n1.printNode();
 
-    Node n2; 
-    Node n3; 
+    // Node n2; 
+    // Node n3; 
 
-    n1.isLeaf = false; 
-    n1.left = &n2;
-    n1.right = &n3;
+    // n1.isLeaf = false; 
+    // n1.left = &n2;
+    // n1.right = &n3;
 
-    n1.printNode();
+    // n1.printNode();
 
 }   
