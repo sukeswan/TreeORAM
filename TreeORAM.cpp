@@ -5,9 +5,11 @@
 #include <map>
 #include <cmath> 
 #include <string>
+#include <bitset>
 using namespace std;
 
-#define BUCKETSIZE 4
+#define N 8
+#define BUCKETSIZE 3 // logN
 
 
 class Client; 
@@ -15,7 +17,7 @@ class Server;
 class Block;
 class Bucket;
 class Node; 
-// class Tree; 
+class Tree; 
 
 class Client{
     public: 
@@ -27,7 +29,7 @@ class Client{
         largest_uid = 0; // can assign initiall uid to dummy
     }
 
-    void prinClient(){
+    void prinClient(){ // print postion map at client 
         cout << "\n --- Client Position Map ---" << endl;
         map<int, int>::iterator itr;
         cout << "\tKEY\tELEMENT\n";
@@ -40,7 +42,7 @@ class Client{
     }
 };
 
-class Server{
+class Server{ 
     // binary tree
     // leaves with unique ids 
     // buckets with blocks 
@@ -59,13 +61,13 @@ class Block{
         data = "Dummy"; 
     }
 
-    Block(int uidP, int leafP, string dataP){
+    Block(int uidP, int leafP, string dataP){ // constructor for non dummy blocks
         uid = uidP;
         leaf =leafP; 
         data = dataP; 
     }
 
-    void printBlock(){
+    void printBlock(){ // print block info 
         cout << "BLOCK ID: " << uid << " LEAF: " << leaf << " DATA: " << data << endl; 
 
     }
@@ -74,23 +76,20 @@ class Block{
 
 class Bucket{
     public: 
-        int size; 
-        Block blocks[BUCKETSIZE];
+        Block* blocks[BUCKETSIZE]; // store pointers to blocks 
     
      Bucket(){
-        size = BUCKETSIZE;
 
-        for (int i = 0; i < size; i++){
-            Block newBlock; 
-            blocks[i] = newBlock; 
+        for (int i = 0; i < BUCKETSIZE; i++){
+            blocks[i] = new Block();  // intialize dummy blocks for bucket
         }
     }
 
-    void printBucket(){
+    void printBucket(){ // print bucket + blocks 
 
-        cout<< "\n--- BUCKET w/ size " << size << " --- " << endl; 
-        for (int i = 0; i < size; i++){
-            blocks[i].printBlock();
+        cout<< "\n--- BUCKET w/ size " << BUCKETSIZE << " --- " << endl; 
+        for (int i = 0; i < BUCKETSIZE; i++){
+            blocks[i]->printBlock();
 
         }
 
@@ -101,26 +100,27 @@ class Bucket{
 
 class Node{
     public:
-        Node* left; 
+        Node* left; // children nodes 
         Node* right; 
-        Bucket bucket;
-        bool isLeaf; 
+        Bucket* bucket;
+        bool isLeaf; // keep track of leafs 
 
     Node(){
-        isLeaf = true;
+        isLeaf = true; // assume node is leaf 
+        bucket = new Bucket(); 
     }
 
-    void printNode(){
+    void printNode(){ // print all nodes 
 
         if (isLeaf){
             cout << "\n --- NODE --- " << endl; 
-            bucket.printBucket();
+            bucket->printBucket();
             cout << " ^^^ LEAF ^^^ " <<endl;
         }
             
         else{
             cout << "\n --- NODE --- " << endl; 
-            bucket.printBucket();
+            bucket->printBucket();
             left->printNode(); 
             right->printNode();
         }
@@ -130,15 +130,13 @@ class Node{
 
 class Tree{
     public:
-        int size; 
         int levels; 
         int leafNums;
         Node* root;
         int bucketSize;
 
     
-    Tree(int N) {
-        size = N;
+    Tree() {
         levels = log2(N);
         leafNums = N;
         bucketSize = log2(N) + 1;
@@ -160,39 +158,13 @@ class Tree{
     }
 
     void printTree(){
-        cout << "\n --- TREE of size " << size << " --- " << endl;
+        cout << "\n --- TREE of size " << N << " --- " << endl;
         root->printNode();
     }
 };
 
 int main(){
     cout << "hello world" << endl;
-    Tree tree(4); 
-    tree.printTree(); 
-
-//     Node root; 
-//     Node left; 
-//     Node right; 
-
-//     root.isLeaf = false; 
-
-//     root.left = &left; 
-//     root.right = &right; 
-
-//     root.printNode(); 
-//    // left.printNode(); 
-//     //right.printNode(); 
-
-    // Node n1; 
-    // n1.printNode();
-
-    // Node n2; 
-    // Node n3; 
-
-    // n1.isLeaf = false; 
-    // n1.left = &n2;
-    // n1.right = &n3;
-
-    // n1.printNode();
-
+    Tree tree;
+    tree.printTree();
 }   

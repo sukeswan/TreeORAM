@@ -1,0 +1,131 @@
+hello world
+
+ --- TREE of size 8 --- 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
+
+ --- NODE --- 
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+BLOCK ID: 0 LEAF: 0 DATA: Dummy
+--------------------------
+ ^^^ LEAF ^^^ 
