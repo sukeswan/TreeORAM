@@ -12,43 +12,13 @@ using namespace std;
 #define numNodes N*2 -1
 #define BUCKETSIZE 3 // logN
 
-
-class Client; 
-class Server; 
 class Block;
 class Bucket;
 class Node; 
 class Tree; 
 
-class Client{
-    public: 
-        map<int,int> position_map; // client will store position map
-        int largest_uid;           // also needs to keep track of largest assinged unique id
-    
-    Client(){ // constructor for Node
-        position_map.clear(); 
-        largest_uid = 0; // can assign initiall uid to dummy
-    }
-
-    void prinClient(){ // print postion map at client 
-        cout << "\n --- Client Position Map ---" << endl;
-        map<int, int>::iterator itr;
-        cout << "\tKEY\tELEMENT\n";
-        for (itr = position_map.begin(); itr != position_map.end(); ++itr) {
-            cout << '\t' << itr->first << '\t' << itr->second
-                << '\n';
-        }
-
-        cout << " --------------------------" << endl;
-    }
-};
-
-class Server{ 
-    // binary tree
-    // leaves with unique ids 
-    // buckets with blocks 
-
-};
+class Client; 
+class Server; 
 
 class Block{
     public:
@@ -57,8 +27,8 @@ class Block{
         string data;
 
     Block(){ // need default constructor for Bucket
-        uid = 0;
-        leaf = 0; 
+        uid = -1;
+        leaf = -1; 
         data = "Dummy"; 
     }
 
@@ -160,7 +130,6 @@ class Node{
     }
 };
 
-
 class Tree{
     public:
         int levels; 
@@ -184,10 +153,67 @@ class Tree{
 
 };
 
+class Client{
+    public: 
+        map<int,int> position_map; // client will store position map
+        int new_uid;               // also needs to keep track of largest assinged unique id
+        Tree* tree;
+
+    Client(){ // constructor for Node
+        position_map.clear(); 
+        new_uid = 0; // generate new uids for blocks
+
+        tree = new Tree(); 
+
+    }
+
+    void prinClient(){ // print postion map at client 
+        cout << "\n --- Client Position Map ---" << endl;
+        map<int, int>::iterator itr;
+        cout << "\tKEY\tELEMENT\n";
+        for (itr = position_map.begin(); itr != position_map.end(); ++itr) {
+            cout << '\t' << itr->first << '\t' << itr->second
+                << '\n';
+        }
+
+        tree->printTree(); 
+
+        cout << " --------------------------" << endl;
+    }
+};
+
+class Server{ 
+    public:
+        Tree* tree;
+
+    Server(){
+        tree = new Tree(); 
+    }
+
+    void update(Tree* newTree){
+        tree = newTree; 
+    }
+
+    void printServer(){
+        
+        cout << " ----- SERVER STATE START ----- " << endl; 
+        tree->printTree(); 
+        cout << " ------ SERVER STATE END ------ " << endl;
+    }
+    
+};
 
 int main(){
     cout << "hello world" << endl;
     
-    Tree tree;
-    tree.printTree();
+    Client c1; 
+    c1.prinClient(); 
+
+    c1.tree->nodes[0]->bucket->blocks[0]->data = "Testing 123456"; 
+
+    Server s1; 
+    s1.update(c1.tree); 
+
+    s1.printServer(); 
+
 }   
