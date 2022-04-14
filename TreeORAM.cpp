@@ -18,9 +18,7 @@ class Server;
 class Block;
 class Bucket;
 class Node; 
-class Node2; 
-class Tree;
-class Tree2;  
+class Tree; 
 
 class Client{
     public: 
@@ -103,42 +101,11 @@ class Bucket{
 
 class Node{
     public:
-        Node* left; // children nodes 
-        Node* right; 
-        Bucket* bucket;
-        bool isLeaf; // keep track of leafs 
-
-    Node(){
-        isLeaf = true; // assume node is leaf 
-        bucket = new Bucket(); 
-    }
-
-    void printNode(){ // print all nodes 
-
-        if (isLeaf){
-            cout << "\n --- NODE --- " << endl; 
-            bucket->printBucket();
-            cout << " ^^^ LEAF ^^^ " <<endl;
-        }
-            
-        else{
-            cout << "\n --- NODE --- " << endl; 
-            bucket->printBucket();
-            left->printNode(); 
-            right->printNode();
-        }
-        
-    }
-};
-
-
-class Node2{
-    public:
 
         Bucket* bucket;
         bool isLeaf; // keep track of leafs 
 
-    Node2(int index){ // pas index of node
+    Node(int index){ // pas index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
         bucket = new Bucket(); 
@@ -193,48 +160,16 @@ class Node2{
     }
 };
 
+
 class Tree{
     public:
         int levels; 
-        int leafNums;
-        Node* root;
-    
-    Tree() {
-        levels = log2(N);
-        leafNums = N;
-        root = buildRec(levels);
-    }
+        Node* nodes[numNodes];
 
-    Node* buildRec(int levelsP){
-        Node* root = new Node(); 
-        if (levelsP ==0){
-            root->isLeaf = true; 
-            return root;
-        }
-        else{
-            root->isLeaf = false; 
-            root->left = buildRec(levelsP-1);
-            root->right = buildRec(levelsP-1);
-            return root; 
-        }
-    }
-
-    void printTree(){
-        cout << "\n --- TREE of size " << N << " --- " << endl;
-        root->printNode();
-    }
-};
-
-
-class Tree2{
-    public:
-        int levels; 
-        Node2* nodes[numNodes];
-
-    Tree2(){
+    Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            nodes[i] = new Node2(i);  // intialize dummy blocks for bucket
+            nodes[i] = new Node(i);  // intialize dummy blocks for bucket
         }
     }
 
@@ -253,6 +188,6 @@ class Tree2{
 int main(){
     cout << "hello world" << endl;
     
-    Tree2 tree;
+    Tree tree;
     tree.printTree();
 }   
