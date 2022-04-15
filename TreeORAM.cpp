@@ -9,16 +9,70 @@
 using namespace std;
 
 #define N 8
-#define numNodes N*2 -1
-#define BUCKETSIZE 3 // logN
+#define numNodes N*2-1
+#define PATHSIZE int(log2(N)+1)
+#define BUCKETSIZE 3 // log N
+#define DUMMY "Dummy"
+#define ERROR "ERROR"
 
-class Block;
-class Bucket;
-class Node; 
-class Tree; 
+int smallLeaf(){ // returns smallest leaf value
+        return N-1; 
+}
 
-class Client; 
-class Server; 
+int bigLeaf(){ // returns biggest leaf value 
+        return 2*N -2; 
+}
+
+int randomLeaf(){ // TODO not crypto secure
+     return smallLeaf() + rand() % ((bigLeaf() - smallLeaf() + 1)); // [smallLeaf, bigLeaf]
+}
+
+bool checkLeaf(int index){ // check if node is leaf
+
+    if ((index >= smallLeaf()) && (index <= bigLeaf())){
+            return true;
+    }
+    return false; 
+}
+
+int left(int index){ // calculate index of left child
+    if (checkLeaf(index)){     // leaf has no right child
+        return -1; 
+    }
+        return ((2*index) + 1);
+}
+
+int right(int index){ // calculate index of right child 
+    if (checkLeaf(index)){      // leaf has no right child 
+        return -1; 
+    }
+    return ((2*index) +2);
+}
+
+int parent(int index){ // get index of parent node
+
+    if (index == 0){  // parent of root does not exist 
+        return -1; 
+    }
+
+    return(floor((index-1)/2));
+}
+
+int* getPath(int leafid){ // get the indexes for path to leaf 
+
+    int* path = new int[PATHSIZE]; 
+    int backwards = PATHSIZE - 1; 
+    int currentNode = leafid;
+
+    while (backwards >= 0){
+        path[backwards] = currentNode; 
+        backwards--; 
+        currentNode = parent(currentNode); 
+    }
+
+    return path; 
+
+}
 
 class Block{
     public:
@@ -29,7 +83,7 @@ class Block{
     Block(){ // need default constructor for Bucket
         uid = -1;
         leaf = -1; 
-        data = "Dummy"; 
+        data = DUMMY; 
     }
 
     Block(int uidP, int leafP, string dataP){ // constructor for non dummy blocks
@@ -81,46 +135,6 @@ class Node{
         bucket = new Bucket(); 
     }
 
-    int smallLeaf(){ // returns smallest leaf value
-        return N-1; 
-    }
-
-    int bigLeaf(){
-        return 2*N -1; // returns biggest leaf value +1
-    }
-
-    bool checkLeaf(int index){ // check if node is leaf
-
-        if ((index >= smallLeaf()) && (index < bigLeaf())){
-            return true;
-        }
-        return false; 
-    }
-
-    int left(int index){ // calculate index of left child
-        if (isLeaf){     // leaf has no right child
-            return -1; 
-        }
-        return ((2*index) + 1);
-    }
-
-    int right(int index){ // calculate index of right child 
-        if (isLeaf){      // leaf has no right child 
-            return -1; 
-        }
-        return ((2*index) +2);
-    }
-
-    int parent(int index){ // get index of parent node
-
-        if (index == 0){  // parent of root does not exist 
-            return -1; 
-        }
-
-        return(floor((index-1)/2));
-    }
-
-
     void printNode(int index){ // print node info + bucket
 
         cout << "\n --- NODE " << index << " --- " << endl; 
@@ -142,6 +156,49 @@ class Tree{
         }
     }
 
+    string readAndRemove(int uid, int leaf){
+        
+        int* path = getPath(leaf); // get the indexes of the path
+        Block* dummy = new Block(); // dummy block to swap out 
+
+        for(int n = 0; n < PATHSIZE; n++){ //iterate through nodes on path
+
+            Node* currentNode = nodes[n]; 
+            Bucket* currentBucket = currentNode->bucket; 
+
+            for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
+
+                Block* currentBlock = currentBucket->blocks[b]; 
+                if(currentBlock->uid == uid){ // if ids are same
+                    string data = currentBlock->data; //retreive data
+                    nodes[n]->bucket->blocks[b] = dummy; //replace with dummy block
+                    return data; 
+                }
+            }
+        }
+        return ERROR; 
+    }
+
+    void write(int uid, int leaf, string data){
+
+        Node* root = nodes[0]; 
+
+        for (int i = 0; i < BUCKETSIZE; i++){
+
+            Block* current = root->bucket->blocks[i]; // current block to look at
+            Block* newBlock = new Block(uid,leaf,data); // new block to write o tree
+
+            if((current->data.compare(DUMMY)) == 0){ // if block is dummy in root
+                root->bucket->blocks[i] = newBlock;  // replace dummy with new block 
+                break; 
+            }
+
+
+        }
+
+        // TODO: CALL EVICT FUNCTION
+    }
+
     void printTree(){
         cout << "\n --- TREE of size " << numNodes << " --- " << endl;
         
@@ -150,21 +207,38 @@ class Tree{
         }
 
     }
-
 };
 
 class Client{
     public: 
         map<int,int> position_map; // client will store position map
-        int new_uid;               // also needs to keep track of largest assinged unique id
         Tree* tree;
 
     Client(){ // constructor for Node
         position_map.clear(); 
-        new_uid = 0; // generate new uids for blocks
-
         tree = new Tree(); 
 
+    }
+
+    void write(int uid, string data){
+
+        if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
+            position_map[uid] = randomLeaf(); 
+        }
+        
+        int leaf = position_map[uid]; 
+        tree->write(uid,leaf,data); 
+    }
+
+    string readAndRemove(int uid){
+
+        int oldLeaf = position_map[uid]; // create random new leaf for block
+        int newLeaf = randomLeaf();
+        position_map[uid] = newLeaf;
+
+        string data = tree->readAndRemove(uid,oldLeaf); 
+
+        return data; 
     }
 
     void prinClient(){ // print postion map at client 
@@ -205,15 +279,21 @@ class Server{
 
 int main(){
     cout << "hello world" << endl;
-    
+
     Client c1; 
+
+    c1.write(3,"Hello"); 
+    c1.write(8,"Working"); 
+    c1.write(1000,"yay!");
+    
+    c1.prinClient();
+
+    string hello = c1.readAndRemove(3); 
+    string working = c1.readAndRemove(8);
+    string yay = c1.readAndRemove(1000); 
+
     c1.prinClient(); 
 
-    c1.tree->nodes[0]->bucket->blocks[0]->data = "Testing 123456"; 
-
-    Server s1; 
-    s1.update(c1.tree); 
-
-    s1.printServer(); 
+    cout << hello << " " << working << " " << yay << endl; 
 
 }   
