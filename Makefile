@@ -1,4 +1,4 @@
 main:
 	clear
 	g++ TreeORAM.cpp -o TreeORAM
-	./TreeORAM 
+	./TreeORAM > output.txt

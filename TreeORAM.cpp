@@ -8,7 +8,7 @@
 #include <bitset>
 using namespace std;
 
-#define N 16
+#define N 8
 #define numNodes N*2-1
 #define PATHSIZE int(log2(N)+1)
 #define BUCKETSIZE 3 // log N
@@ -176,6 +176,16 @@ class Bucket{
 
     }
 
+    void writeToBucket(int uid, int leaf, string data){
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+            if (blocks[i]->uid == -1){
+                blocks[i] = new Block(uid,leaf,data);
+                break; 
+            }
+        }
+    }
+
     void printBucket(){ // print bucket + blocks 
 
         cout<< "\n--- BUCKET w/ size " << BUCKETSIZE << " --- " << endl; 
@@ -229,91 +239,6 @@ class Tree{
         }
     }
 
-    string readAndRemove(int uid, int leaf){
-        
-        int* path = getPath(leaf); // get the indexes of the path
-        Block* dummy = new Block(); // dummy block to swap out 
-
-        for(int n = 0; n < PATHSIZE; n++){ //iterate through nodes on path
-
-            Node* currentNode = nodes[n]; 
-            Bucket* currentBucket = currentNode->bucket; 
-
-            for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
-
-                Block* currentBlock = currentBucket->blocks[b]; 
-                if(currentBlock->uid == uid){ // if ids are same
-                    string data = currentBlock->data; //retreive data
-                    nodes[n]->bucket->blocks[b] = dummy; //replace with dummy block
-                    return data; 
-                }
-            }
-        }
-        return DUMMY; // return dummy data if block DNE 
-    }
-
-    void write(int uid, int leaf, string data){
-
-        Node* root = nodes[0]; 
-
-        for (int i = 0; i < BUCKETSIZE; i++){
-
-            Block* current = root->bucket->blocks[i]; // current block to look at
-            Block* newBlock = new Block(uid,leaf,data); // new block to write o tree
-
-            if((current->data.compare(DUMMY)) == 0){ // if block is dummy in root
-                root->bucket->blocks[i] = newBlock;  // replace dummy with new block 
-                break; 
-            }
-
-
-        }
-
-        // TODO: CALL EVICT FUNCTION
-    }
-
-    // void evict(){
-        
-    //     int* evicting = blocksToEvicit(); 
-    //     int numOfEvictions = 2*PATHSIZE-3;
-
-    //     for(int i = 0; i < numOfEvictions; i++){
-            
-    //         int evictingIndex = evicting[i];
-
-    //         Node* currentEvict = nodes[evictingIndex]; 
-
-    //         int leftIndex = left(evictingIndex); // get children that are getting new block
-    //         int rightIndex = right(evictingIndex);
-    //         Node* leftChild = nodes[leftIndex]; 
-    //         Node* rightChild = nodes[rightIndex]; 
-
-    //         Block* real = currentEvict->bucket->pop();
-
-    //         if(real->uid == -1){ // no real blocks then nothing to evict
-    //             return; 
-    //         }
-
-    //         else{
-    //             int possible = real->leaf; 
-
-    //             while (possible != leftIndex|| possible !=rightIndex){
-    //                 possible = parent(possible); 
-    //             }
-
-    //             if(possible == leftIndex){
-    //                 // write to block 
-    //             }
-    //             else{
-
-    //             }
-
-    //         }
-
-    //     }
-
-    // }
-
     void printTree(){
         cout << "\n --- TREE of size " << numNodes << " --- " << endl;
         
@@ -321,52 +246,6 @@ class Tree{
             nodes[i]->printNode(i);
         }
 
-    }
-};
-
-class Client{
-    public: 
-        map<int,int> position_map; // client will store position map
-        Tree* tree;
-
-    Client(){ // constructor for Node
-        position_map.clear(); 
-        tree = new Tree(); 
-
-    }
-
-    void write(int uid, string data){
-
-        if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
-            position_map[uid] = randomLeaf(); 
-        }
-        
-        int leaf = position_map[uid]; 
-        tree->write(uid,leaf,data); 
-    }
-
-    string readAndRemove(int uid){
-
-        int oldLeaf = position_map[uid]; // create random new leaf for block
-        int newLeaf = randomLeaf();
-        position_map[uid] = newLeaf;
-
-        string data = tree->readAndRemove(uid,oldLeaf); 
-        return data; 
-    }
-
-    void prinClient(){ // print postion map at client 
-        cout << "\n --- Client Position Map ---" << endl;
-        map<int, int>::iterator itr;
-        cout << "\tKEY\tELEMENT\n";
-        for (itr = position_map.begin(); itr != position_map.end(); ++itr) {
-            cout << '\t' << itr->first << '\t' << itr->second
-                << '\n';
-        }
-
-        tree->printTree(); 
-
-        cout << " --------------------------" << endl;
     }
 };
 
@@ -378,10 +257,6 @@ class Server{
         tree = new Tree(); 
     }
 
-    void update(Tree* newTree){
-        tree = newTree; 
-    }
-
     void printServer(){
         
         cout << " ----- SERVER STATE START ----- " << endl; 
@@ -391,22 +266,187 @@ class Server{
     
 };
 
+class Client{
+    public: 
+        map<int,int> position_map; // client will store position map
+
+    Client(){ // constructor for Node
+        position_map.clear(); 
+
+    }
+
+    Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
+
+        Node* dummy = new Node(); 
+        Node* wanted  = s->tree->nodes[nid]; 
+
+        s->tree->nodes[nid] = dummy; 
+
+        return wanted; 
+
+    }
+
+    string readAndRemove(Server* s,int uid, int leaf){
+        
+        int* path = getPath(leaf); // get the indexes of the path
+        Block* dummy = new Block(); // dummy block to swap out 
+        
+        Node* nodes[PATHSIZE]; 
+
+        for(int i=0; i <PATHSIZE; i++){  // fetch all the nodes from server
+            nodes[i] = fetch(s, path[i]);
+        }
+
+        bool hit = false;  // keep track of if value is found 
+        string data; 
+
+        for(int n = 0; n < PATHSIZE; n++){ //iterate through nodes on path
+
+            Node* currentNode = nodes[n]; 
+            Bucket* currentBucket = currentNode->bucket; 
+
+            for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
+
+                Block* currentBlock = currentBucket->blocks[b]; 
+                if(currentBlock->uid == uid){ // if ids are same
+                    data = currentBlock->data; //retreive data
+                    hit = true; 
+                    nodes[n]->bucket->blocks[b] = dummy; //replace with dummy block
+                    
+                    n = PATHSIZE; // stop searching path 
+                    b = BUCKETSIZE; 
+
+                }
+            }
+        }
+
+        for(int i = 0; i < PATHSIZE; i++){ // write path back to server
+            int nid = path[i]; 
+            Node* n = nodes[i]; 
+            s->tree->nodes[nid] = n; 
+        }
+
+        if(hit){
+            return data;
+        }
+        else{
+            return DUMMY; // return dummy data if block DNE 
+        }
+    }
+
+    string read(Server* s, int uid){
+
+        int oldLeaf = position_map[uid]; // create random new leaf for block
+        int newLeaf = randomLeaf();
+        position_map[uid] = newLeaf;
+
+        string data = readAndRemove(s,uid,oldLeaf); 
+
+
+        Node* root = fetch(s, 0); // fetch node and write back to it 
+
+        if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
+            root->bucket->writeToBucket(uid,newLeaf,data);  
+        }
+
+        s->tree->nodes[0] = root; 
+
+        return data; 
+    }
+
+     void write(Server* s, int uid, string data){
+
+        if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
+            position_map[uid] = randomLeaf(); 
+        }
+        
+        int leaf = position_map[uid]; 
+
+        readAndRemove(s,uid,leaf); //remove the value from tree if it exists 
+
+        Node* root = fetch(s, 0); // fetch node and write back to it 
+
+        if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
+            root->bucket->writeToBucket(uid, leaf, data);  
+        }
+
+        s->tree->nodes[0] = root;
+
+        evict(s);  
+    }
+
+    void evict(Server* s){
+            
+        int* evicting = blocksToEvicit(); 
+        int numOfEvictions = 2*PATHSIZE-3;
+
+        for(int i = 0; i < numOfEvictions; i++){
+                
+            int evictingIndex = evicting[i];
+
+            Node* currentEvict = fetch(s,evictingIndex);  
+
+            int leftIndex = left(evictingIndex); // get children that are getting new block
+            int rightIndex = right(evictingIndex);
+            Node* leftChild = fetch(s,leftIndex); 
+            Node* rightChild = fetch(s, rightIndex); 
+
+            Block* real = currentEvict->bucket->pop();
+
+            if(real->uid != -1){ // real block so evict it
+
+                int possible = real->leaf; 
+
+                while (possible != leftIndex && possible !=rightIndex){
+                        possible = parent(possible); 
+                }
+
+                if(possible == leftIndex){
+                    leftChild->bucket->writeToBucket(real->uid, real->leaf, real->data); 
+                }
+                else{
+                    rightChild->bucket->writeToBucket(real->uid, real->leaf, real->data); 
+                }
+            }
+
+            s->tree->nodes[evictingIndex] = currentEvict; // put the eviction node and children back 
+            s->tree->nodes[leftIndex] = leftChild; 
+            s->tree->nodes[rightIndex] = rightChild; 
+        }
+    }
+
+    void printClient(){ // print postion map at client 
+        cout << "\n --- Client Position Map ---" << endl;
+        map<int, int>::iterator itr;
+        cout << "\tUID\tLEAF\n";
+        for (itr = position_map.begin(); itr != position_map.end(); ++itr) {
+            cout << '\t' << itr->first << '\t' << itr->second
+                << '\n';
+        }
+
+        cout << " --------------------------" << endl;
+    }
+};
+
 int main(){
     cout << "hello world" << endl;
 
-    // Client c1; 
+    Client* c1 = new Client(); 
+    Server* s = new Server(); 
 
-    // c1.write(3,"Hello"); 
-    // c1.write(8,"Working"); 
-    // c1.write(1000,"yay!");
+    c1->write(s, 3,"Hello"); 
+    c1->write(s, 8,"Working"); 
+    c1->write(s, 1000,"yay!");
     
-    // c1.prinClient();
+    c1->printClient(); 
+    s->printServer();
 
-    // string hello = c1.readAndRemove(3); 
-    // string working = c1.readAndRemove(8);
-    // string yay = c1.readAndRemove(1000); 
+    // string hello = c1->read(s,3); 
+    // string working = c1->read(s,8);
+    // string yay = c1->read(s,1000); 
 
-    // c1.prinClient(); 
+    // c1->printClient(); 
+    // s->printServer(); 
 
     // cout << hello << " " << working << " " << yay << endl; 
 
