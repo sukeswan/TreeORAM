@@ -8,12 +8,11 @@
 #include <bitset>
 using namespace std;
 
-#define N 8
+#define N 16
 #define numNodes N*2-1
 #define PATHSIZE int(log2(N)+1)
 #define BUCKETSIZE 3 // log N
 #define DUMMY "Dummy"
-#define ERROR "ERROR"
 
 int smallLeaf(){ // returns smallest leaf value
         return N-1; 
@@ -25,6 +24,56 @@ int bigLeaf(){ // returns biggest leaf value
 
 int randomLeaf(){ // TODO not crypto secure
      return smallLeaf() + rand() % ((bigLeaf() - smallLeaf() + 1)); // [smallLeaf, bigLeaf]
+}
+
+int randomRange(int small, int big){ // pick random value from range
+    return small + rand() % ((big - small + 1));
+}
+
+int* levelRange(int level){ // get node index at level 
+
+    int* range = new int[2];
+    int low = pow(2,level) - 1;
+    int high = pow(2,level+1) -2; 
+
+    range[0] = low; 
+    range[1] = high; 
+
+    return range; 
+}
+
+int* pick2(int small, int big){ // pick 2 random values from range
+
+    int* random = new int[2]; 
+
+    random[0] = randomRange(small, big); 
+    random[1] = randomRange(small, big);
+    while(random[0] == random[1]){
+        random[1] = randomRange(small, big);
+    } 
+
+    return random; 
+}
+
+int* blocksToEvicit(){
+
+    int* toEvict = new int[2*PATHSIZE-3]; // number of blocks to evict
+    toEvict[0] = 0; //root will always be evicited 
+    int next = 1; // where to store randomly selected buckets 
+    for(int i =1; i < PATHSIZE-1; i++){ // choose eviction blocks from level 1 - leave level non inclusive 
+
+        int* level = levelRange(i); // get picking range for the level 
+        int* evictBuckets = pick2(level[0], level[1]); // pick 2 random blocks to evict
+
+        toEvict[next] = evictBuckets[0]; //keep track of blocks to evict in array 
+        toEvict[next+1] = evictBuckets[1]; 
+
+        next = next + 2; 
+
+    }
+
+    return toEvict; 
+
 }
 
 bool checkLeaf(int index){ // check if node is leaf
@@ -110,6 +159,23 @@ class Bucket{
         }
     }
 
+    Block* pop(){ // pop off block of data if it exisits. otherwise return dummy
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+
+            if(blocks[i]->uid != -1){ // if data exists
+                Block* temp = blocks[i]; 
+                blocks[i] = new Block(); 
+                return temp; 
+            }
+
+        }
+
+        Block* dummy = new Block();
+        return dummy; 
+
+    }
+
     void printBucket(){ // print bucket + blocks 
 
         cout<< "\n--- BUCKET w/ size " << BUCKETSIZE << " --- " << endl; 
@@ -133,6 +199,13 @@ class Node{
 
         isLeaf = checkLeaf(index); // leaf boolean
         bucket = new Bucket(); 
+    }
+
+    Node(){ // dummy node for when removing things from server 
+
+        isLeaf = false;
+        bucket = new Bucket; 
+
     }
 
     void printNode(int index){ // print node info + bucket
@@ -176,7 +249,7 @@ class Tree{
                 }
             }
         }
-        return ERROR; 
+        return DUMMY; // return dummy data if block DNE 
     }
 
     void write(int uid, int leaf, string data){
@@ -198,6 +271,48 @@ class Tree{
 
         // TODO: CALL EVICT FUNCTION
     }
+
+    // void evict(){
+        
+    //     int* evicting = blocksToEvicit(); 
+    //     int numOfEvictions = 2*PATHSIZE-3;
+
+    //     for(int i = 0; i < numOfEvictions; i++){
+            
+    //         int evictingIndex = evicting[i];
+
+    //         Node* currentEvict = nodes[evictingIndex]; 
+
+    //         int leftIndex = left(evictingIndex); // get children that are getting new block
+    //         int rightIndex = right(evictingIndex);
+    //         Node* leftChild = nodes[leftIndex]; 
+    //         Node* rightChild = nodes[rightIndex]; 
+
+    //         Block* real = currentEvict->bucket->pop();
+
+    //         if(real->uid == -1){ // no real blocks then nothing to evict
+    //             return; 
+    //         }
+
+    //         else{
+    //             int possible = real->leaf; 
+
+    //             while (possible != leftIndex|| possible !=rightIndex){
+    //                 possible = parent(possible); 
+    //             }
+
+    //             if(possible == leftIndex){
+    //                 // write to block 
+    //             }
+    //             else{
+
+    //             }
+
+    //         }
+
+    //     }
+
+    // }
 
     void printTree(){
         cout << "\n --- TREE of size " << numNodes << " --- " << endl;
@@ -237,7 +352,6 @@ class Client{
         position_map[uid] = newLeaf;
 
         string data = tree->readAndRemove(uid,oldLeaf); 
-
         return data; 
     }
 
@@ -280,20 +394,20 @@ class Server{
 int main(){
     cout << "hello world" << endl;
 
-    Client c1; 
+    // Client c1; 
 
-    c1.write(3,"Hello"); 
-    c1.write(8,"Working"); 
-    c1.write(1000,"yay!");
+    // c1.write(3,"Hello"); 
+    // c1.write(8,"Working"); 
+    // c1.write(1000,"yay!");
     
-    c1.prinClient();
+    // c1.prinClient();
 
-    string hello = c1.readAndRemove(3); 
-    string working = c1.readAndRemove(8);
-    string yay = c1.readAndRemove(1000); 
+    // string hello = c1.readAndRemove(3); 
+    // string working = c1.readAndRemove(8);
+    // string yay = c1.readAndRemove(1000); 
 
-    c1.prinClient(); 
+    // c1.prinClient(); 
 
-    cout << hello << " " << working << " " << yay << endl; 
+    // cout << hello << " " << working << " " << yay << endl; 
 
 }   
