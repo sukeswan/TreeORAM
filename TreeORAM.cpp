@@ -342,7 +342,6 @@ class Client{
 
         string data = readAndRemove(s,uid,oldLeaf); 
 
-
         Node* root = fetch(s, 0); // fetch node and write back to it 
 
         if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
@@ -441,13 +440,13 @@ int main(){
     c1->printClient(); 
     s->printServer();
 
-    // string hello = c1->read(s,3); 
-    // string working = c1->read(s,8);
-    // string yay = c1->read(s,1000); 
+    string hello = c1->read(s,3); 
+    string working = c1->read(s,8);
+    string yay = c1->read(s,1000); 
 
-    // c1->printClient(); 
-    // s->printServer(); 
+    c1->printClient(); 
+    s->printServer(); 
 
-    // cout << hello << " " << working << " " << yay << endl; 
+    cout << hello << " " << working << " " << yay << endl; 
 
 }   
