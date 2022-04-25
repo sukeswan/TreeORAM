@@ -6,13 +6,32 @@
 #include <cmath> 
 #include <string>
 #include <bitset>
+#include <thread>
+#include <chrono>
 using namespace std;
+using namespace std::chrono;
 
-#define N 8
-#define numNodes N*2-1
-#define PATHSIZE int(log2(N)+1)
-#define BUCKETSIZE 3 // log N
-#define DUMMY "Dummy"
+const int N = 8; 
+const int numNodes = N*2-1; 
+const int BUCKETSIZE = 3;// logN 
+const string DUMMY = "Dummy"; 
+const int PATHSIZE  = (log2(N)+1);
+const int THREADS = 4; 
+
+class Block; 
+class Bucket; 
+class Node; 
+class Tree; 
+class Server; 
+class Client; 
+
+void printArray(int* a){
+    cout << "["; 
+    for(int i = 0; i < PATHSIZE; i++){
+        cout << a[i] << ", "; 
+    }
+    cout << "]" << endl; 
+}
 
 int smallLeaf(){ // returns smallest leaf value
         return N-1; 
@@ -266,6 +285,63 @@ class Server{
     
 };
 
+Node* globalFetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
+
+    Node* dummy = new Node(); 
+    Node* wanted  = s->tree->nodes[nid]; 
+
+    s->tree->nodes[nid] = dummy; 
+
+    return wanted; 
+
+}
+
+void globalMultiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store){
+    for(int i=start; i <end; i++){  // fetch all the nodes from server
+        store[i] = globalFetch(s, fetchingIndices[i]); // parallelize 
+    }
+}
+
+void checkBucket(Node** nodes, int index,int targetUID, string* solution){
+
+    Block* dummy = new Block(); // dummy block to swap out 
+
+    Node* currentNode = nodes[index]; 
+    Bucket* currentBucket = currentNode->bucket; 
+
+        for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
+
+            Block* currentBlock = currentBucket->blocks[b]; 
+            if(currentBlock->uid == targetUID){ // if ids are same
+                *solution = currentBlock->data; //retreive data
+                nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block
+                b = BUCKETSIZE; 
+
+            }
+        }
+}
+
+void multiBucketCheck(int start, int end, Node** nodes,int targetUID, string* solution){
+
+    for(int i=start; i <end; i++){  // fetch all the nodes from server
+        checkBucket(nodes, i, targetUID, solution);
+    }
+
+}
+
+void nodeToServer(Server* s, int i, int* path, Node** nodes){
+    int nid = path[i]; 
+    Node* n = nodes[i]; 
+    s->tree->nodes[nid] = n; 
+}
+
+void multiNodesToServer(int start, int end, Server* s, int* path, Node** nodes){
+    for(int i = start; i < end; i++){
+        
+        nodeToServer(s,i,path,nodes); 
+    }
+}
+
 class Client{
     public: 
         map<int,int> position_map; // client will store position map
@@ -284,6 +360,12 @@ class Client{
 
         return wanted; 
 
+    }
+
+    void multiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store){
+        for(int i=start; i <end; i++){  // fetch all the nodes from server
+            store[i] = fetch(s, fetchingIndices[i]); // parallelize 
+        }
     }
 
     string readAndRemove(Server* s,int uid, int leaf){
@@ -334,13 +416,69 @@ class Client{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+    string readAndRemoveParallel(Server* s,int uid, int leaf){
+        
+        int* path = getPath(leaf); // get the indexes of the path
+        
+        Node* nodes[PATHSIZE];
+        Node** nP = nodes; 
+
+        int step = PATHSIZE / THREADS; // how much ti split up array 
+        std::vector<std::thread> threads; 
+
+        for (int i = 0; i < THREADS; i++) {
+            int start = i * step; 
+            int end = (i+1) * step; 
+            threads.push_back(std::thread(globalMultiFetch, s, start, end, path, nP));
+        }
+
+        for (std::thread &t : threads) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }
+
+        string data = DUMMY;
+        string* dP = &data;
+
+        for (int i = 0; i < THREADS; i++) {
+            int start = i * step; 
+            int end = (i+1) * step; 
+            threads.push_back(std::thread(multiBucketCheck, start, end, nP, uid, dP));
+        }
+
+        for (std::thread &t : threads) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }
+
+        for (int i = 0; i < THREADS; i++) { // write path back to server
+            int start = i * step; 
+            int end = (i+1) * step; 
+            threads.push_back(std::thread(multiNodesToServer, start, end, s, path, nP));
+        }
+
+        for (std::thread &t : threads) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }      
+        return data; // return dummy data if block DNE 
+        
+    }
+
     string read(Server* s, int uid){
 
         int oldLeaf = position_map[uid]; // create random new leaf for block
         int newLeaf = randomLeaf();
         position_map[uid] = newLeaf;
 
-        string data = readAndRemove(s,uid,oldLeaf); 
+        string data = readAndRemoveParallel(s,uid,oldLeaf); 
 
         Node* root = fetch(s, 0); // fetch node and write back to it 
 
@@ -361,7 +499,7 @@ class Client{
         
         int leaf = position_map[uid]; 
 
-        readAndRemove(s,uid,leaf); //remove the value from tree if it exists 
+        readAndRemoveParallel(s,uid,leaf); //remove the value from tree if it exists 
 
         Node* root = fetch(s, 0); // fetch node and write back to it 
 
