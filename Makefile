@@ -10,4 +10,4 @@
 main:
 	clear
 	g++ -std=c++17 -lpthread TreeORAM.cpp -o TreeORAM
-	./TreeORAM > output2.txt
+	./TreeORAM > multi_6thread_results.txt

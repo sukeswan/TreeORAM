@@ -11,12 +11,18 @@
 using namespace std;
 using namespace std::chrono;
 
-const int N = 8; 
-const int numNodes = N*2-1; 
-const int BUCKETSIZE = 3;// logN 
-const string DUMMY = "Dummy"; 
-const int PATHSIZE  = (log2(N)+1);
-const int THREADS = 4; 
+// -------------------------- CHECK THESE PARAMETERS ------------------------
+
+const int N = 4096; // size of tree
+const int numNodes = N*2-1; // number of nodes in tree ~2N 
+const int BUCKETSIZE = 12; // Size of bucket is logN        *** MANUAL FILL ***
+const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
+const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
+const int THREADS = 6; // # of threads to use (hardware concurrency for this laptop is 12)
+const int MAX_DATA = 10000; // # of random data strings to create
+const int DATA_SIZE = 10; // length of random data strings 
+
+// -------------------------- CHECK THESE PARAMETERS ------------------------
 
 class Block; 
 class Bucket; 
@@ -28,6 +34,14 @@ class Client;
 void printArray(int* a){
     cout << "["; 
     for(int i = 0; i < PATHSIZE; i++){
+        cout << a[i] << ", "; 
+    }
+    cout << "]" << endl; 
+}
+
+void printArraySize(int* a, int size){
+    cout << "["; 
+    for(int i = 0; i < size; i++){
         cout << a[i] << ", "; 
     }
     cout << "]" << endl; 
@@ -368,58 +382,6 @@ class Client{
         }
     }
 
-    string readAndRemove(Server* s,int uid, int leaf){
-        
-        int* path = getPath(leaf); // get the indexes of the path
-        Block* dummy = new Block(); // dummy block to swap out 
-        
-        Node* nodes[PATHSIZE]; 
-
-        for(int i=0; i <PATHSIZE; i++){  // fetch all the nodes from server
-            nodes[i] = fetch(s, path[i]);
-        }
-
-        bool hit = false;  // keep track of if value is found 
-        string data; 
-
-        for(int n = 0; n < PATHSIZE; n++){ //iterate through nodes on path
-
-            Node* currentNode = nodes[n]; 
-            Bucket* currentBucket = currentNode->bucket; 
-
-            for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
-
-                Block* currentBlock = currentBucket->blocks[b]; 
-                if(currentBlock->uid == uid){ // if ids are same
-                    data = currentBlock->data; //retreive data
-                    hit = true; 
-                    nodes[n]->bucket->blocks[b] = dummy; //replace with dummy block
-                    
-                    n = PATHSIZE; // stop searching path 
-                    b = BUCKETSIZE; 
-
-                }
-            }
-        }
-
-        for(int i = 0; i < PATHSIZE; i++){ // write path back to server
-            int nid = path[i]; 
-            Node* n = nodes[i]; 
-            s->tree->nodes[nid] = n; 
-        }
-
-        if(hit){
-            return data;
-        }
-        else{
-            return DUMMY; // return dummy data if block DNE 
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
-
     string readAndRemoveParallel(Server* s,int uid, int leaf){
         
         int* path = getPath(leaf); // get the indexes of the path
@@ -427,10 +389,10 @@ class Client{
         Node* nodes[PATHSIZE];
         Node** nP = nodes; 
 
-        int step = PATHSIZE / THREADS; // how much ti split up array 
+        int step = PATHSIZE / THREADS; // how much to split up array 
         std::vector<std::thread> threads; 
 
-        for (int i = 0; i < THREADS; i++) {
+        for (int i = 0; i < THREADS; i++) { // parallel fetching the buckets from the server
             int start = i * step; 
             int end = (i+1) * step; 
             threads.push_back(std::thread(globalMultiFetch, s, start, end, path, nP));
@@ -445,7 +407,7 @@ class Client{
         string data = DUMMY;
         string* dP = &data;
 
-        for (int i = 0; i < THREADS; i++) {
+        for (int i = 0; i < THREADS; i++) { // parallel checking buckets for target data 
             int start = i * step; 
             int end = (i+1) * step; 
             threads.push_back(std::thread(multiBucketCheck, start, end, nP, uid, dP));
@@ -565,26 +527,95 @@ class Client{
     }
 };
 
-int main(){
-    cout << "hello world" << endl;
+string randomString(const int len) {
+    static const char alpha[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    string tmp_s;
+    tmp_s.reserve(len);
+
+    for (int i = 0; i < len; ++i) {
+        tmp_s += alpha[rand() % (sizeof(alpha) - 1)];
+    }
+    
+    return tmp_s;
+}
+
+int testWrites(Client* c1, Server* s){
+
+    auto start = high_resolution_clock::now();
+
+    for(int i = 0; i < MAX_DATA; i++){
+        c1->write(s,i,randomString(DATA_SIZE)); // initially fill tree with data
+    }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    int writes = duration.count();
+
+    return writes;
+}
+
+int testReads(Client* c1, Server* s){
+    auto start = high_resolution_clock::now();
+
+    for(int i = 0; i < MAX_DATA; i++){
+        string data =  c1->read(s,i); // initially fill tree with data
+    }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    int reads = duration.count();
+
+    return reads; 
+}
+
+void singleTest(int* reading, int* writing, int index){
 
     Client* c1 = new Client(); 
     Server* s = new Server(); 
 
-    c1->write(s, 3,"Hello"); 
-    c1->write(s, 8,"Working"); 
-    c1->write(s, 1000,"yay!");
+    writing[index] = testWrites(c1,s);
+    reading[index] = testReads(c1,s);  
+
+}
+
+void multipleTests(int iterations){
+    int* reads = new int[iterations]; 
+    int* writes = new int[iterations]; 
+
+    for(int i = 0; i < iterations; i++){
+        singleTest(reads, writes, i); 
+    }
+
+    cout << "___ Reads in microseconds ___" << endl; 
+    printArraySize(reads, iterations); 
+
+    cout << "___ Writes in microseconds ___" << endl; 
+    printArraySize(writes, iterations); 
+
+}
+
+int main(){
+    cout << "hello world" << endl;
+
+    multipleTests(10); 
+
+    // c1->write(s, 3,"Hello"); 
+    // c1->write(s, 8,"Working"); 
+    // c1->write(s, 1000,"yay!");
     
-    c1->printClient(); 
-    s->printServer();
+    // c1->printClient(); 
+    // s->printServer();
 
-    string hello = c1->read(s,3); 
-    string working = c1->read(s,8);
-    string yay = c1->read(s,1000); 
+    // string hello = c1->read(s,3); 
+    // string working = c1->read(s,8);
+    // string yay = c1->read(s,1000); 
 
-    c1->printClient(); 
-    s->printServer(); 
+    // c1->printClient(); 
+    // s->printServer(); 
 
-    cout << hello << " " << working << " " << yay << endl; 
+    // cout << hello << " " << working << " " << yay << endl; 
 
 }   
