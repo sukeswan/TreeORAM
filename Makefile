@@ -9,5 +9,5 @@
 
 main:
 	clear
-	g++ -std=c++17 -lpthread TreeORAM.cpp -o TreeORAM
-	./TreeORAM > multi_6thread_results.txt
+	g++ -std=c++17 -lpthread -lcrypto TreeORAM.cpp -o TreeORAM 
+	./TreeORAM > testing.txt

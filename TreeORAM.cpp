@@ -5,24 +5,18 @@
 #include <map>
 #include <cmath> 
 #include <string>
+#include <cstring>
 #include <bitset>
 #include <thread>
 #include <chrono>
+
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
+
 using namespace std;
 using namespace std::chrono;
-
-// -------------------------- CHECK THESE PARAMETERS ------------------------
-
-const int N = 4096; // size of tree
-const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 12; // Size of bucket is logN        *** MANUAL FILL ***
-const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
-const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
-const int THREADS = 6; // # of threads to use (hardware concurrency for this laptop is 12)
-const int MAX_DATA = 10000; // # of random data strings to create
-const int DATA_SIZE = 10; // length of random data strings 
-
-// -------------------------- CHECK THESE PARAMETERS ------------------------
 
 class Block; 
 class Bucket; 
@@ -30,6 +24,24 @@ class Node;
 class Tree; 
 class Server; 
 class Client; 
+
+// -------------------------- CHECK THESE PARAMETERS ------------------------
+
+const int N = 8; // size of tree
+const int numNodes = N*2-1; // number of nodes in tree ~2N 
+const int BUCKETSIZE = 3; // Size of bucket is logN        *** MANUAL FILL ***
+const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
+const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
+const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
+const int MAX_DATA = 10000; // # of random data strings to create
+const int DATA_SIZE = 10; // length of random data strings 
+
+const int KEY_SIZE = 256; // for AES
+const int IV_SIZE = 128; 
+const int BYTE_SIZE = 8; 
+const int BUFFER_SIZE = 1024; 
+
+// -------------------------- CHECK THESE PARAMETERS ------------------------
 
 void printArray(int* a){
     cout << "["; 
@@ -156,27 +168,258 @@ int* getPath(int leafid){ // get the indexes for path to leaf
 
 }
 
+unsigned char* generateKey(){
+    unsigned char* key = new unsigned char[KEY_SIZE/BYTE_SIZE]();
+    RAND_bytes(key, sizeof(key));
+    return key; 
+}
+
+unsigned char* generateIV(){
+    unsigned char* iv = new unsigned char[IV_SIZE/BYTE_SIZE]();
+    RAND_bytes(iv, sizeof(iv));
+    return iv; 
+}
+
+unsigned char* string2UnsignedChar(string input){
+    unsigned char* output = new unsigned char[input.length()];
+    strcpy( (char*) output, input.c_str());
+    return output;
+}
+
+string unsignedChar2String(unsigned char* input){
+    string output = (reinterpret_cast<char*>(input));
+    return output;
+}
+
+void handleErrors(void){
+    ERR_print_errors_fp(stderr);
+    abort();
+}
+
+int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+            unsigned char *iv, unsigned char *ciphertext){
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+
+    int ciphertext_len;
+
+    /* Create and initialise the context */
+    if(!(ctx = EVP_CIPHER_CTX_new()))
+        handleErrors();
+
+    /*
+     * Initialise the encryption operation. IMPORTANT - ensure you use a key
+     * and IV size appropriate for your cipher
+     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+     * IV size for *most* modes is the same as the block size. For AES this
+     * is 128 bits
+     */
+    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+        handleErrors();
+
+    /*
+     * Provide the message to be encrypted, and obtain the encrypted output.
+     * EVP_EncryptUpdate can be called multiple times if necessary
+     */
+    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+        handleErrors();
+    ciphertext_len = len;
+
+    /*
+     * Finalise the encryption. Further ciphertext bytes may be written at
+     * this stage.
+     */
+    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+        handleErrors();
+    ciphertext_len += len;
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+
+    return ciphertext_len;
+}
+
+int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+            unsigned char *iv, unsigned char *plaintext){
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+
+    int plaintext_len;
+
+    /* Create and initialise the context */
+    if(!(ctx = EVP_CIPHER_CTX_new()))
+
+        handleErrors();
+
+    /*
+     * Initialise the decryption operation. IMPORTANT - ensure you use a key
+     * and IV size appropriate for your cipher
+     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+     * IV size for *most* modes is the same as the block size. For AES this
+     * is 128 bits
+     */
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+        handleErrors();
+
+    /*
+     * Provide the message to be decrypted, and obtain the plaintext output.
+     * EVP_DecryptUpdate can be called multiple times if necessary.
+     */
+    if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
+        handleErrors();
+    plaintext_len = len;
+
+    /*
+     * Finalise the decryption. Further plaintext bytes may be written at
+     * this stage.
+     */
+    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len))
+        handleErrors();
+    plaintext_len += len;
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+
+    return plaintext_len;
+}
+
 class Block{
     public:
         int uid; // unique identifier
         int leaf; // leaf each block is pointing to 
         string data;
+        
+        bool encrypted; 
+        unsigned char* iv; 
+        unsigned char* ciphertext; 
+        int cipher_len; 
 
     Block(){ // need default constructor for Bucket
         uid = -1;
         leaf = -1; 
         data = DUMMY; 
+        
+        iv = 0; 
+        encrypted = false;
+        ciphertext = NULL; 
+        cipher_len = 0; 
+
     }
 
-    Block(int uidP, int leafP, string dataP){ // constructor for non dummy blocks
+    Block(int uidP, int leafP, string dataP){ //plaintext constructor  for non dummy blocks
         uid = uidP;
-        leaf =leafP; 
-        data = dataP; 
+        leaf = leafP; 
+        data = dataP;
+
+        iv = 0;  
+        encrypted = false; 
+        ciphertext = NULL; 
+        cipher_len = 0; 
+
+    }
+
+    Block(string ciphertext, unsigned char* ivP){
+        uid = -2;
+        leaf = -2; 
+        data = ciphertext; 
+
+        encrypted = true; 
+        iv = ivP; 
+
+    }
+
+    void makePayload(){ // create payload for encrypting data
+        string uid_string = to_string(uid); 
+        string leaf_string = to_string(leaf); 
+        string payload = uid_string + "," + leaf_string + "," + data; 
+
+        data = payload; // get ready for encryption!
+    }
+
+    void breakPayload(){ // remove uid and leaf from payload
+
+        string delimiter = ",";
+
+        size_t pos = 0;                   
+        pos = data.find(delimiter); 
+        string uid_string = data.substr(0, pos); 
+        data.erase(0, pos + delimiter.length());
+        uid = stoi(uid_string); 
+
+        pos = 0;
+        pos = data.find(delimiter); 
+        string leaf_string = data.substr(0, pos); 
+        data.erase(0, pos + delimiter.length());
+        leaf= stoi(leaf_string); 
+
+        iv = 0;
+        encrypted = false; 
+        ciphertext = NULL; 
+        cipher_len = 0;  
+
+    }
+
+    unsigned char* easy_encrypt(unsigned char *key){
+
+        makePayload();
+        iv = generateIV(); 
+        unsigned char* plaintext = string2UnsignedChar(data);
+        
+        /*
+        * Buffer for ciphertext. Ensure the buffer is long enough for the
+        * ciphertext which may be longer than the plaintext, depending on the
+        * algorithm and mode.
+        */
+
+        ciphertext = new unsigned char[BUFFER_SIZE];
+
+        /* Encrypt the plaintext */
+        cipher_len = encrypt (plaintext, strlen((char *)plaintext), key, iv, ciphertext);
+
+        uid = -2; 
+        leaf = -2; 
+        data = ""; 
+        encrypted = true; 
+
+        return ciphertext; 
+
+    }
+
+    void easy_decrypt(unsigned char *key){
+    
+    unsigned char decryptedtext[BUFFER_SIZE];
+    int decryptedtext_len;
+
+    /* Decrypt the ciphertext */
+    decryptedtext_len = decrypt(ciphertext, cipher_len, key, iv, decryptedtext);
+    decryptedtext[decryptedtext_len] = '\0';
+    data = unsignedChar2String(decryptedtext); 
+
+    breakPayload();
+
+    iv = 0;  
+    encrypted = false; 
+    ciphertext = NULL; 
+    cipher_len = 0; 
+
+    }
+
+    void printCipher(){
+        /* Do something useful with the ciphertext here */
+        printf("Ciphertext for Encrypted Block: ");
+        BIO_dump_fp (stdout, (const char *)ciphertext, cipher_len);
     }
 
     void printBlock(){ // print block info 
-        cout << "BLOCK ID: " << uid << " LEAF: " << leaf << " DATA: " << data << endl; 
-
+        if(encrypted){
+            printCipher(); 
+        }
+        else{
+            cout << "BLOCK ID: " << uid << " LEAF: " << leaf << " DATA: " << data << endl;
+        }
+        
     }
 
 };
@@ -208,6 +451,19 @@ class Bucket{
         return dummy; 
 
     }
+
+    void encryptBucket(unsigned char* key){
+        for(int i = 0; i < BUCKETSIZE; i++){
+            blocks[i]->easy_encrypt(key);
+        }
+    }
+
+    void decryptBucket(unsigned char* key){
+        for(int i = 0; i < BUCKETSIZE; i++){
+            blocks[i]->easy_decrypt(key);
+        }
+    }
+    
 
     void writeToBucket(int uid, int leaf, string data){
 
@@ -247,7 +503,7 @@ class Node{
     Node(){ // dummy node for when removing things from server 
 
         isLeaf = false;
-        bucket = new Bucket; 
+        bucket = new Bucket(); 
 
     }
 
@@ -299,10 +555,13 @@ class Server{
     
 };
 
-Node* globalFetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
+Node* globalFetch(Server* s,int nid, unsigned char* key){ // fetch a node from the server and replace with dummy node
 
-    Node* dummy = new Node(); 
-    Node* wanted  = s->tree->nodes[nid]; 
+    Node* dummy = new Node();
+    dummy->bucket->encryptBucket(key); 
+
+    Node* wanted  = s->tree->nodes[nid];
+    wanted->bucket->decryptBucket(key);  
 
     s->tree->nodes[nid] = dummy; 
 
@@ -310,16 +569,15 @@ Node* globalFetch(Server* s,int nid){ // fetch a node from the server and replac
 
 }
 
-void globalMultiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store){
+void globalMultiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store, unsigned char* key){
     for(int i=start; i <end; i++){  // fetch all the nodes from server
-        store[i] = globalFetch(s, fetchingIndices[i]); // parallelize 
+        store[i] = globalFetch(s, fetchingIndices[i], key); // parallelize 
     }
 }
 
 void checkBucket(Node** nodes, int index,int targetUID, string* solution){
 
     Block* dummy = new Block(); // dummy block to swap out 
-
     Node* currentNode = nodes[index]; 
     Bucket* currentBucket = currentNode->bucket; 
 
@@ -343,35 +601,39 @@ void multiBucketCheck(int start, int end, Node** nodes,int targetUID, string* so
 
 }
 
-void nodeToServer(Server* s, int i, int* path, Node** nodes){
+void nodeToServer(Server* s, int i, int* path, Node** nodes, unsigned char* key){
     int nid = path[i]; 
-    Node* n = nodes[i]; 
+    Node* n = nodes[i];
+    n->bucket->encryptBucket(key);  
     s->tree->nodes[nid] = n; 
 }
 
-void multiNodesToServer(int start, int end, Server* s, int* path, Node** nodes){
+void multiNodesToServer(int start, int end, Server* s, int* path, Node** nodes, unsigned char* key){
     for(int i = start; i < end; i++){
-        
-        nodeToServer(s,i,path,nodes); 
+        nodeToServer(s,i,path,nodes,key); 
     }
 }
 
 class Client{
     public: 
         map<int,int> position_map; // client will store position map
+        unsigned char* key; 
 
     Client(){ // constructor for Node
         position_map.clear(); 
+        key = generateKey();
 
     }
 
     Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
 
-        Node* dummy = new Node(); 
+        Node* dummy = new Node();
+        dummy->bucket->encryptBucket(key);
+
         Node* wanted  = s->tree->nodes[nid]; 
+        wanted->bucket->decryptBucket(key);
 
         s->tree->nodes[nid] = dummy; 
-
         return wanted; 
 
     }
@@ -379,7 +641,7 @@ class Client{
     void multiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store){
         for(int i=start; i <end; i++){  // fetch all the nodes from server
             store[i] = fetch(s, fetchingIndices[i]); // parallelize 
-        }
+        } // this function updated with parallel version called global multiFetch 
     }
 
     string readAndRemoveParallel(Server* s,int uid, int leaf){
@@ -395,7 +657,7 @@ class Client{
         for (int i = 0; i < THREADS; i++) { // parallel fetching the buckets from the server
             int start = i * step; 
             int end = (i+1) * step; 
-            threads.push_back(std::thread(globalMultiFetch, s, start, end, path, nP));
+            threads.push_back(std::thread(globalMultiFetch, s, start, end, path, nP, key));
         }
 
         for (std::thread &t : threads) {
@@ -422,7 +684,7 @@ class Client{
         for (int i = 0; i < THREADS; i++) { // write path back to server
             int start = i * step; 
             int end = (i+1) * step; 
-            threads.push_back(std::thread(multiNodesToServer, start, end, s, path, nP));
+            threads.push_back(std::thread(multiNodesToServer, start, end, s, path, nP, key));
         }
 
         for (std::thread &t : threads) {
@@ -448,6 +710,7 @@ class Client{
             root->bucket->writeToBucket(uid,newLeaf,data);  
         }
 
+        root->bucket->encryptBucket(key); 
         s->tree->nodes[0] = root; 
 
         return data; 
@@ -469,6 +732,7 @@ class Client{
             root->bucket->writeToBucket(uid, leaf, data);  
         }
 
+        root->bucket->encryptBucket(key); 
         s->tree->nodes[0] = root;
 
         evict(s);  
@@ -508,10 +772,25 @@ class Client{
                 }
             }
 
+
+            currentEvict->bucket->encryptBucket(key); 
+            leftChild->bucket->encryptBucket(key); 
+            rightChild->bucket->encryptBucket(key); 
+
             s->tree->nodes[evictingIndex] = currentEvict; // put the eviction node and children back 
             s->tree->nodes[leftIndex] = leftChild; 
             s->tree->nodes[rightIndex] = rightChild; 
         }
+    }
+
+    void initServer(Server* s){
+
+        for(int i =0; i < numNodes; i++){
+            Node* n = new Node(); 
+            n->bucket->encryptBucket(key);
+            s->tree->nodes[i] = n;  
+        }
+
     }
 
     void printClient(){ // print postion map at client 
@@ -527,7 +806,7 @@ class Client{
     }
 };
 
-string randomString(const int len) {
+string randomAlphaString(const int len) {
     static const char alpha[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
@@ -546,7 +825,7 @@ int testWrites(Client* c1, Server* s){
     auto start = high_resolution_clock::now();
 
     for(int i = 0; i < MAX_DATA; i++){
-        c1->write(s,i,randomString(DATA_SIZE)); // initially fill tree with data
+        c1->write(s,i,randomAlphaString(DATA_SIZE)); // initially fill tree with data
     }
 
     auto stop = high_resolution_clock::now();
@@ -600,22 +879,55 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world" << endl;
 
-    multipleTests(10); 
+    // Client* c1 = new Client();
 
-    // c1->write(s, 3,"Hello"); 
-    // c1->write(s, 8,"Working"); 
-    // c1->write(s, 1000,"yay!");
+    // Block b0(5,6, "Check");
+
+    // b0.easy_encrypt(c1->key); 
+    // b0.printBlock();
+
+    // b0.easy_decrypt(c1->key); 
+    // b0.printBlock();
+
+    // unsigned char* key = generateKey(); 
+
+    // Block* b0 = new Block(0,3, "Check0");
+    // Block* b1 = new Block(1,4, "Check1");
+    // Block* b2 = new Block(2,5, "Check2");
+
+    // Bucket* bu = new Bucket(); 
+
+    // bu->blocks[0] =  b0; 
+    // bu->blocks[1] =  b1; 
+    // bu->blocks[2] =  b2; 
+
+    // bu->encryptBucket(key); 
+    // bu->printBucket();
+
+    // bu->decryptBucket(key); 
+    // bu->printBucket();
+
+
+    Client* c1 = new Client(); 
+    Server* s = new Server();
+
+    c1->initServer(s);  
+
+    c1->write(s, 3,"Hello"); 
+    c1->write(s, 8,"Working"); 
+    c1->write(s, 1000,"yay!");
     
-    // c1->printClient(); 
-    // s->printServer();
+    c1->printClient(); 
+    s->printServer();
 
-    // string hello = c1->read(s,3); 
-    // string working = c1->read(s,8);
-    // string yay = c1->read(s,1000); 
+    string hello = c1->read(s,3); 
+    string working = c1->read(s,8);
+    string yay = c1->read(s,1000); 
 
-    // c1->printClient(); 
-    // s->printServer(); 
+    c1->printClient(); 
+    s->printServer(); 
 
-    // cout << hello << " " << working << " " << yay << endl; 
+    cout << hello << " " << working << " " << yay << endl; 
+    //cout << uhoh << endl; 
 
 }   
