@@ -99,5 +99,6 @@
         "utility": "cpp",
         "stop_token": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Enabled"
+    "C_Cpp.errorSquiggles": "Enabled",
+    "intelOneAPI.analysis.binary-path": "/Users/Surya/Desktop/TreeORAM/TreeORAM"
 }

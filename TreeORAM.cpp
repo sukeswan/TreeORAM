@@ -33,7 +33,7 @@ const int BUCKETSIZE = 3; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
-const int MAX_DATA = 10000; // # of random data strings to create
+const int MAX_DATA = 1000; // # of random data strings to create
 const int DATA_SIZE = 10; // length of random data strings 
 
 const int KEY_SIZE = 256; // for AES
@@ -77,7 +77,7 @@ int randomRange(int small, int big){ // pick random value from range
 
 int* levelRange(int level){ // get node index at level 
 
-    int* range = new int[2];
+    int* range = new int[2]; // deleted 
     int low = pow(2,level) - 1;
     int high = pow(2,level+1) -2; 
 
@@ -89,7 +89,7 @@ int* levelRange(int level){ // get node index at level
 
 int* pick2(int small, int big){ // pick 2 random values from range
 
-    int* random = new int[2]; 
+    int* random = new int[2]; // deleted
 
     random[0] = randomRange(small, big); 
     random[1] = randomRange(small, big);
@@ -100,9 +100,9 @@ int* pick2(int small, int big){ // pick 2 random values from range
     return random; 
 }
 
-int* blocksToEvicit(){
+int* blocksToEvict(){
 
-    int* toEvict = new int[2*PATHSIZE-3]; // number of blocks to evict
+    int* toEvict = new int[2*PATHSIZE-3]; // number of blocks to evict *deleted*
     toEvict[0] = 0; //root will always be evicited 
     int next = 1; // where to store randomly selected buckets 
     for(int i =1; i < PATHSIZE-1; i++){ // choose eviction blocks from level 1 - leave level non inclusive 
@@ -114,9 +114,9 @@ int* blocksToEvicit(){
         toEvict[next+1] = evictBuckets[1]; 
 
         next = next + 2; 
-
+        delete [] level; 
+        delete [] evictBuckets; 
     }
-
     return toEvict; 
 
 }
@@ -154,7 +154,7 @@ int parent(int index){ // get index of parent node
 
 int* getPath(int leafid){ // get the indexes for path to leaf 
 
-    int* path = new int[PATHSIZE]; 
+    int* path = new int[PATHSIZE]; // deleted
     int backwards = PATHSIZE - 1; 
     int currentNode = leafid;
 
@@ -169,7 +169,7 @@ int* getPath(int leafid){ // get the indexes for path to leaf
 }
 
 unsigned char* generateKey(){
-    unsigned char* key = new unsigned char[KEY_SIZE/BYTE_SIZE]();
+    unsigned char* key = new unsigned char[KEY_SIZE/BYTE_SIZE](); // deleted in Client deconstructor 
     RAND_bytes(key, sizeof(key));
     return key; 
 }
@@ -180,8 +180,8 @@ unsigned char* generateIV(){
     return iv; 
 }
 
-unsigned char* string2UnsignedChar(string input){
-    unsigned char* output = new unsigned char[input.length()];
+unsigned char* string2UnsignedChar(string input){ 
+    unsigned char* output = new unsigned char[input.length()]; // deleted
     strcpy( (char*) output, input.c_str());
     return output;
 }
@@ -373,7 +373,7 @@ class Block{
         * algorithm and mode.
         */
 
-        ciphertext = new unsigned char[BUFFER_SIZE];
+        ciphertext = new unsigned char[BUFFER_SIZE]; // deleted in decrypt and destructor
 
         /* Encrypt the plaintext */
         cipher_len = encrypt (plaintext, strlen((char *)plaintext), key, iv, ciphertext);
@@ -383,6 +383,7 @@ class Block{
         data = ""; 
         encrypted = true; 
 
+        delete [] plaintext; 
         return ciphertext; 
 
     }
@@ -400,7 +401,9 @@ class Block{
     breakPayload();
 
     iv = 0;  
-    encrypted = false; 
+    encrypted = false;
+
+    delete [] ciphertext; 
     ciphertext = NULL; 
     cipher_len = 0; 
 
@@ -422,6 +425,11 @@ class Block{
         
     }
 
+    ~Block(){
+        delete [] iv; 
+        delete [] ciphertext; 
+    }
+
 };
 
 class Bucket{
@@ -431,7 +439,7 @@ class Bucket{
      Bucket(){
 
         for (int i = 0; i < BUCKETSIZE; i++){
-            blocks[i] = new Block();  // intialize dummy blocks for bucket
+            blocks[i] = new Block();  // intialize dummy blocks for bucket deleted in ~
         }
     }
 
@@ -447,7 +455,7 @@ class Bucket{
 
         }
 
-        Block* dummy = new Block();
+        Block* dummy = new Block(); // deleted 
         return dummy; 
 
     }
@@ -469,7 +477,7 @@ class Bucket{
 
         for(int i = 0; i < BUCKETSIZE; i++){
             if (blocks[i]->uid == -1){
-                blocks[i] = new Block(uid,leaf,data);
+                blocks[i] = new Block(uid,leaf,data); // will delete when ~ called
                 break; 
             }
         }
@@ -486,6 +494,14 @@ class Bucket{
         cout << "--------------------------" << endl;
     }
 
+    ~Bucket(){
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+            delete blocks[i]; 
+        }
+
+    }
+
 };
 
 class Node{
@@ -497,13 +513,13 @@ class Node{
     Node(int index){ // pas index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
-        bucket = new Bucket(); 
+        bucket = new Bucket(); // deleted with ~
     }
 
     Node(){ // dummy node for when removing things from server 
 
         isLeaf = false;
-        bucket = new Bucket(); 
+        bucket = new Bucket(); // deleted with ~
 
     }
 
@@ -513,6 +529,10 @@ class Node{
         cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl; 
         bucket->printBucket();
         
+    }
+
+    ~Node(){
+        delete bucket; 
     }
 };
 
@@ -524,7 +544,7 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            nodes[i] = new Node(i);  // intialize dummy blocks for bucket
+            nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
 
@@ -536,6 +556,14 @@ class Tree{
         }
 
     }
+
+    ~Tree(){
+
+        for(int i = 0; i < numNodes; i++){
+            delete nodes[i]; 
+        }
+
+    }
 };
 
 class Server{ 
@@ -543,7 +571,7 @@ class Server{
         Tree* tree;
 
     Server(){
-        tree = new Tree(); 
+        tree = new Tree(); // deleted with ~
     }
 
     void printServer(){
@@ -551,6 +579,10 @@ class Server{
         cout << " ----- SERVER STATE START ----- " << endl; 
         tree->printTree(); 
         cout << " ------ SERVER STATE END ------ " << endl;
+    }
+
+    ~Server(){
+        delete tree; 
     }
     
 };
@@ -563,7 +595,7 @@ Node* globalFetch(Server* s,int nid, unsigned char* key){ // fetch a node from t
     Node* wanted  = s->tree->nodes[nid];
     wanted->bucket->decryptBucket(key);  
 
-    s->tree->nodes[nid] = dummy; 
+    s->tree->nodes[nid] = dummy; // deleted with ~
 
     return wanted; 
 
@@ -586,7 +618,7 @@ void checkBucket(Node** nodes, int index,int targetUID, string* solution){
             Block* currentBlock = currentBucket->blocks[b]; 
             if(currentBlock->uid == targetUID){ // if ids are same
                 *solution = currentBlock->data; //retreive data
-                nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block
+                nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block // deleted with ~
                 b = BUCKETSIZE; 
 
             }
@@ -633,7 +665,7 @@ class Client{
         Node* wanted  = s->tree->nodes[nid]; 
         wanted->bucket->decryptBucket(key);
 
-        s->tree->nodes[nid] = dummy; 
+        s->tree->nodes[nid] = dummy; // deleted with ~
         return wanted; 
 
     }
@@ -691,7 +723,10 @@ class Client{
             if (t.joinable()) {
                 t.join();
             }
-        }      
+        }  
+
+        delete [] path; 
+
         return data; // return dummy data if block DNE 
         
     }
@@ -740,7 +775,7 @@ class Client{
 
     void evict(Server* s){
             
-        int* evicting = blocksToEvicit(); 
+        int* evicting = blocksToEvict(); 
         int numOfEvictions = 2*PATHSIZE-3;
 
         for(int i = 0; i < numOfEvictions; i++){
@@ -772,6 +807,7 @@ class Client{
                 }
             }
 
+            delete real; 
 
             currentEvict->bucket->encryptBucket(key); 
             leftChild->bucket->encryptBucket(key); 
@@ -781,12 +817,14 @@ class Client{
             s->tree->nodes[leftIndex] = leftChild; 
             s->tree->nodes[rightIndex] = rightChild; 
         }
+
+        delete [] evicting; 
     }
 
     void initServer(Server* s){
 
         for(int i =0; i < numNodes; i++){
-            Node* n = new Node(); 
+            Node* n = new Node(); // deleted with ~
             n->bucket->encryptBucket(key);
             s->tree->nodes[i] = n;  
         }
@@ -803,6 +841,12 @@ class Client{
         }
 
         cout << " --------------------------" << endl;
+    }
+
+    ~Client(){ //deallocate
+        delete key; 
+        position_map.clear(); 
+
     }
 };
 
@@ -853,10 +897,14 @@ int testReads(Client* c1, Server* s){
 void singleTest(int* reading, int* writing, int index){
 
     Client* c1 = new Client(); 
-    Server* s = new Server(); 
+    Server* s = new Server();
+    c1->initServer(s);  
 
     writing[index] = testWrites(c1,s);
     reading[index] = testReads(c1,s);  
+
+    delete c1; 
+    delete s; 
 
 }
 
@@ -874,12 +922,17 @@ void multipleTests(int iterations){
     cout << "___ Writes in microseconds ___" << endl; 
     printArraySize(writes, iterations); 
 
+    delete [] reads; 
+    delete [] writes; 
+
 }
 
 int main(){
     cout << "hello world" << endl;
 
-    // Client* c1 = new Client();
+    //multipleTests(1); 
+
+    // Client* c1 =  Client();
 
     // Block b0(5,6, "Check");
 
@@ -907,7 +960,6 @@ int main(){
     // bu->decryptBucket(key); 
     // bu->printBucket();
 
-
     Client* c1 = new Client(); 
     Server* s = new Server();
 
@@ -928,6 +980,10 @@ int main(){
     s->printServer(); 
 
     cout << hello << " " << working << " " << yay << endl; 
+
+    delete c1; 
+    delete s; 
     //cout << uhoh << endl; 
 
 }   
+

@@ -9,5 +9,9 @@
 
 main:
 	clear
-	g++ -std=c++17 -lpthread -lcrypto TreeORAM.cpp -o TreeORAM 
+	g++ -std=c++17 -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
 	./TreeORAM > testing.txt
+
+# profile: 
+# 	perf record ./TreeORAM
+# 	perf annotate 
