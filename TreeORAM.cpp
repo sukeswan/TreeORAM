@@ -75,21 +75,17 @@ int randomRange(int small, int big){ // pick random value from range
     return small + rand() % ((big - small + 1));
 }
 
-int* levelRange(int level){ // get node index at level 
+void levelRange(int level, int range[]){ // get node index at level 
 
-    int* range = new int[2]; // deleted 
     int low = pow(2,level) - 1;
     int high = pow(2,level+1) -2; 
 
     range[0] = low; 
     range[1] = high; 
 
-    return range; 
 }
 
-int* pick2(int small, int big){ // pick 2 random values from range
-
-    int* random = new int[2]; // deleted
+void pick2(int small, int big, int random[]){ // pick 2 random values from range
 
     random[0] = randomRange(small, big); 
     random[1] = randomRange(small, big);
@@ -97,27 +93,26 @@ int* pick2(int small, int big){ // pick 2 random values from range
         random[1] = randomRange(small, big);
     } 
 
-    return random; 
 }
 
-int* blocksToEvict(){
+void blocksToEvict(int toEvict[]){
 
-    int* toEvict = new int[2*PATHSIZE-3]; // number of blocks to evict *deleted*
     toEvict[0] = 0; //root will always be evicited 
     int next = 1; // where to store randomly selected buckets 
     for(int i =1; i < PATHSIZE-1; i++){ // choose eviction blocks from level 1 - leave level non inclusive 
 
-        int* level = levelRange(i); // get picking range for the level 
-        int* evictBuckets = pick2(level[0], level[1]); // pick 2 random blocks to evict
+        int level[2];
+        levelRange(i, level); // get picking range for the level 
+
+        int evictBuckets[2];
+
+        pick2(level[0], level[1], evictBuckets); // pick 2 random blocks to evict
 
         toEvict[next] = evictBuckets[0]; //keep track of blocks to evict in array 
         toEvict[next+1] = evictBuckets[1]; 
 
         next = next + 2; 
-        delete [] level; 
-        delete [] evictBuckets; 
     }
-    return toEvict; 
 
 }
 
@@ -390,7 +385,7 @@ class Block{
 
     void easy_decrypt(unsigned char *key){
     
-    unsigned char decryptedtext[BUFFER_SIZE];
+    unsigned char* decryptedtext = new unsigned char[BUFFER_SIZE];
     int decryptedtext_len;
 
     /* Decrypt the ciphertext */
@@ -403,7 +398,8 @@ class Block{
     iv = 0;  
     encrypted = false;
 
-    delete [] ciphertext; 
+    delete [] ciphertext;
+    delete [] decryptedtext;  
     ciphertext = NULL; 
     cipher_len = 0; 
 
@@ -726,6 +722,10 @@ class Client{
         }  
 
         delete [] path; 
+        //Removes all elements in vector
+        threads.clear();
+        //Frees the memory which is not used by the vector
+        threads.shrink_to_fit();
 
         return data; // return dummy data if block DNE 
         
@@ -774,10 +774,11 @@ class Client{
     }
 
     void evict(Server* s){
-            
-        int* evicting = blocksToEvict(); 
+        
         int numOfEvictions = 2*PATHSIZE-3;
-
+        int evicting[numOfEvictions]; // number of blocks to evict *deleted*
+        blocksToEvict(evicting); 
+        
         for(int i = 0; i < numOfEvictions; i++){
                 
             int evictingIndex = evicting[i];
@@ -817,8 +818,6 @@ class Client{
             s->tree->nodes[leftIndex] = leftChild; 
             s->tree->nodes[rightIndex] = rightChild; 
         }
-
-        delete [] evicting; 
     }
 
     void initServer(Server* s){
@@ -983,6 +982,8 @@ int main(){
 
     delete c1; 
     delete s; 
+
+    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
     //cout << uhoh << endl; 
 
 }   
