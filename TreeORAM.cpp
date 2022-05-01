@@ -423,17 +423,16 @@ class Bucket{
 
     Block* pop(){ // pop off block of data if it exisits. otherwise return dummy
 
+        Block* dummy = new Block(); // deleted 
+
         for(int i = 0; i < BUCKETSIZE; i++){
 
             if(blocks[i]->uid != -1){ // if data exists
                 Block* temp = blocks[i]; 
-                blocks[i] = new Block(); 
+                blocks[i] = dummy; 
                 return temp; 
             }
-
         }
-
-        Block* dummy = new Block(); // deleted 
         return dummy; 
 
     }
@@ -455,6 +454,7 @@ class Bucket{
 
         for(int i = 0; i < BUCKETSIZE; i++){
             if (blocks[i]->uid == -1){
+                delete blocks[i];
                 blocks[i] = new Block(uid,leaf,data); // will delete when ~ called
                 break; 
             }
@@ -522,6 +522,7 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
+            delete nodes[i]; 
             nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
@@ -614,7 +615,8 @@ void multiBucketCheck(int start, int end, Node** nodes,int targetUID, string* so
 void nodeToServer(Server* s, int i, int* path, Node** nodes, unsigned char* key){
     int nid = path[i]; 
     Node* n = nodes[i];
-    n->bucket->encryptBucket(key);  
+    n->bucket->encryptBucket(key);
+    delete s->tree->nodes[nid];    
     s->tree->nodes[nid] = n; 
 }
 
@@ -729,7 +731,8 @@ class Client{
             root->bucket->writeToBucket(uid,newLeaf,data);  
         }
 
-        root->bucket->encryptBucket(key); 
+        root->bucket->encryptBucket(key);
+        delete s->tree->nodes[0]; 
         s->tree->nodes[0] = root; 
 
         return data; 
@@ -752,6 +755,7 @@ class Client{
         }
 
         root->bucket->encryptBucket(key); 
+        delete s->tree->nodes[0]; 
         s->tree->nodes[0] = root;
 
         evict(s);  
@@ -796,7 +800,11 @@ class Client{
 
             currentEvict->bucket->encryptBucket(key); 
             leftChild->bucket->encryptBucket(key); 
-            rightChild->bucket->encryptBucket(key); 
+            rightChild->bucket->encryptBucket(key);
+
+            delete s->tree->nodes[evictingIndex];
+            delete s->tree->nodes[leftIndex];
+            delete s->tree->nodes[rightIndex];
 
             s->tree->nodes[evictingIndex] = currentEvict; // put the eviction node and children back 
             s->tree->nodes[leftIndex] = leftChild; 
@@ -809,6 +817,7 @@ class Client{
         for(int i =0; i < numNodes; i++){
             Node* n = new Node(); // deleted with ~
             n->bucket->encryptBucket(key);
+            delete s->tree->nodes[i]; 
             s->tree->nodes[i] = n;  
         }
 
