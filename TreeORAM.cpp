@@ -147,9 +147,8 @@ int parent(int index){ // get index of parent node
     return(floor((index-1)/2));
 }
 
-int* getPath(int leafid){ // get the indexes for path to leaf 
+ void getPath(int leafid, int path[]){ // get the indexes for path to leaf 
 
-    int* path = new int[PATHSIZE]; // deleted
     int backwards = PATHSIZE - 1; 
     int currentNode = leafid;
 
@@ -158,28 +157,12 @@ int* getPath(int leafid){ // get the indexes for path to leaf
         backwards--; 
         currentNode = parent(currentNode); 
     }
-
-    return path; 
-
 }
 
-unsigned char* generateKey(){
-    unsigned char* key = new unsigned char[KEY_SIZE/BYTE_SIZE](); // deleted in Client deconstructor 
-    RAND_bytes(key, sizeof(key));
-    return key; 
+void generateKey(unsigned char key[]){
+    RAND_bytes(key, sizeof(KEY_SIZE/BYTE_SIZE));
 }
 
-unsigned char* generateIV(){
-    unsigned char* iv = new unsigned char[IV_SIZE/BYTE_SIZE]();
-    RAND_bytes(iv, sizeof(iv));
-    return iv; 
-}
-
-unsigned char* string2UnsignedChar(string input){ 
-    unsigned char* output = new unsigned char[input.length()]; // deleted
-    strcpy( (char*) output, input.c_str());
-    return output;
-}
 
 string unsignedChar2String(unsigned char* input){
     string output = (reinterpret_cast<char*>(input));
@@ -287,8 +270,8 @@ class Block{
         string data;
         
         bool encrypted; 
-        unsigned char* iv; 
-        unsigned char* ciphertext; 
+        unsigned char iv[IV_SIZE/BYTE_SIZE];
+        unsigned char ciphertext[BUFFER_SIZE]; 
         int cipher_len; 
 
     Block(){ // need default constructor for Bucket
@@ -296,9 +279,9 @@ class Block{
         leaf = -1; 
         data = DUMMY; 
         
-        iv = 0; 
+        emptyArray(iv, IV_SIZE/BYTE_SIZE); 
         encrypted = false;
-        ciphertext = NULL; 
+        emptyArray(ciphertext, BUFFER_SIZE);  
         cipher_len = 0; 
 
     }
@@ -308,21 +291,21 @@ class Block{
         leaf = leafP; 
         data = dataP;
 
-        iv = 0;  
+        emptyArray(iv, IV_SIZE/BYTE_SIZE);   
         encrypted = false; 
-        ciphertext = NULL; 
+        emptyArray(ciphertext, BUFFER_SIZE);   
         cipher_len = 0; 
 
     }
 
-    Block(string ciphertext, unsigned char* ivP){
-        uid = -2;
-        leaf = -2; 
-        data = ciphertext; 
+    void generateIV(){
+        RAND_bytes(iv, sizeof(IV_SIZE/BYTE_SIZE)); 
+    }
 
-        encrypted = true; 
-        iv = ivP; 
-
+    void emptyArray(unsigned char emptying[], int size){
+        for(int i = 0; i < size; i++){
+            emptying[i] = 0; 
+        }
     }
 
     void makePayload(){ // create payload for encrypting data
@@ -349,26 +332,31 @@ class Block{
         data.erase(0, pos + delimiter.length());
         leaf= stoi(leaf_string); 
 
-        iv = 0;
+        emptyArray(iv, IV_SIZE/BYTE_SIZE);  
         encrypted = false; 
-        ciphertext = NULL; 
+        emptyArray(ciphertext, BUFFER_SIZE);   
         cipher_len = 0;  
+
+    }
+
+    void string2UnsignedChar(unsigned char store[]){ 
+        strcpy( (char*) store, data.c_str());
 
     }
 
     unsigned char* easy_encrypt(unsigned char *key){
 
         makePayload();
-        iv = generateIV(); 
-        unsigned char* plaintext = string2UnsignedChar(data);
+        generateIV(); 
+
+        unsigned char plaintext[data.length()];
+        string2UnsignedChar(plaintext);
         
         /*
         * Buffer for ciphertext. Ensure the buffer is long enough for the
         * ciphertext which may be longer than the plaintext, depending on the
         * algorithm and mode.
         */
-
-        ciphertext = new unsigned char[BUFFER_SIZE]; // deleted in decrypt and destructor
 
         /* Encrypt the plaintext */
         cipher_len = encrypt (plaintext, strlen((char *)plaintext), key, iv, ciphertext);
@@ -377,15 +365,13 @@ class Block{
         leaf = -2; 
         data = ""; 
         encrypted = true; 
-
-        delete [] plaintext; 
         return ciphertext; 
 
     }
 
     void easy_decrypt(unsigned char *key){
     
-    unsigned char* decryptedtext = new unsigned char[BUFFER_SIZE];
+    unsigned char decryptedtext[BUFFER_SIZE];
     int decryptedtext_len;
 
     /* Decrypt the ciphertext */
@@ -395,12 +381,10 @@ class Block{
 
     breakPayload();
 
-    iv = 0;  
+    emptyArray(iv, IV_SIZE/BYTE_SIZE);  
     encrypted = false;
 
-    delete [] ciphertext;
-    delete [] decryptedtext;  
-    ciphertext = NULL; 
+    emptyArray(ciphertext, BUFFER_SIZE);  
     cipher_len = 0; 
 
     }
@@ -422,8 +406,6 @@ class Block{
     }
 
     ~Block(){
-        delete [] iv; 
-        delete [] ciphertext; 
     }
 
 };
@@ -645,11 +627,11 @@ void multiNodesToServer(int start, int end, Server* s, int* path, Node** nodes, 
 class Client{
     public: 
         map<int,int> position_map; // client will store position map
-        unsigned char* key; 
+        unsigned char key[KEY_SIZE/BYTE_SIZE]; // deleted in Client deconstructor ]; 
 
     Client(){ // constructor for Node
         position_map.clear(); 
-        key = generateKey();
+        generateKey(key);
 
     }
 
@@ -674,7 +656,10 @@ class Client{
 
     string readAndRemoveParallel(Server* s,int uid, int leaf){
         
-        int* path = getPath(leaf); // get the indexes of the path
+        int path[PATHSIZE]; // deleted
+        getPath(leaf, path); // get the indexes of the path
+        int* pathP = path; 
+
         
         Node* nodes[PATHSIZE];
         Node** nP = nodes; 
@@ -685,7 +670,7 @@ class Client{
         for (int i = 0; i < THREADS; i++) { // parallel fetching the buckets from the server
             int start = i * step; 
             int end = (i+1) * step; 
-            threads.push_back(std::thread(globalMultiFetch, s, start, end, path, nP, key));
+            threads.push_back(std::thread(globalMultiFetch, s, start, end, pathP, nP, key));
         }
 
         for (std::thread &t : threads) {
@@ -712,7 +697,7 @@ class Client{
         for (int i = 0; i < THREADS; i++) { // write path back to server
             int start = i * step; 
             int end = (i+1) * step; 
-            threads.push_back(std::thread(multiNodesToServer, start, end, s, path, nP, key));
+            threads.push_back(std::thread(multiNodesToServer, start, end, s, pathP, nP, key));
         }
 
         for (std::thread &t : threads) {
@@ -721,7 +706,6 @@ class Client{
             }
         }  
 
-        delete [] path; 
         //Removes all elements in vector
         threads.clear();
         //Frees the memory which is not used by the vector
@@ -843,7 +827,7 @@ class Client{
     }
 
     ~Client(){ //deallocate
-        delete key; 
+       
         position_map.clear(); 
 
     }
@@ -983,7 +967,7 @@ int main(){
     delete c1; 
     delete s; 
 
-    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
+    fscanf(stdin, "c"); // wait for user to enter input from keyboard
     //cout << uhoh << endl; 
 
 }   
