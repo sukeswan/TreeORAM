@@ -404,10 +404,6 @@ class Block{
         }
         
     }
-
-    ~Block(){
-    }
-
 };
 
 class Bucket{
@@ -592,16 +588,19 @@ void checkBucket(Node** nodes, int index,int targetUID, string* solution){
     Node* currentNode = nodes[index]; 
     Bucket* currentBucket = currentNode->bucket; 
 
-        for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
+    for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
 
-            Block* currentBlock = currentBucket->blocks[b]; 
-            if(currentBlock->uid == targetUID){ // if ids are same
-                *solution = currentBlock->data; //retreive data
-                nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block // deleted with ~
-                b = BUCKETSIZE; 
+        Block* currentBlock = currentBucket->blocks[b]; 
+        if(currentBlock->uid == targetUID){ // if ids are same
+            *solution = currentBlock->data; //retreive data
+            nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block // deleted with ~
+            delete currentBlock;
+            return;  
+            // b = BUCKETSIZE; 
 
-            }
         }
+    }
+    delete dummy; 
 }
 
 void multiBucketCheck(int start, int end, Node** nodes,int targetUID, string* solution){
@@ -809,6 +808,7 @@ class Client{
             s->tree->nodes[evictingIndex] = currentEvict; // put the eviction node and children back 
             s->tree->nodes[leftIndex] = leftChild; 
             s->tree->nodes[rightIndex] = rightChild; 
+
         }
     }
 
