@@ -1,0 +1,27 @@
+Last login: Sun May  1 15:05:26 on ttys003
+Surya@suryas-mbp ~ % cd Desktop/TreeORAM/
+Surya@suryas-mbp TreeORAM % leaks TreeORAM      
+Process:         TreeORAM [67865]
+Path:            /Users/USER/Desktop/*/TreeORAM
+Load Address:    0x10697c000
+Identifier:      TreeORAM
+Version:         0
+Code Type:       X86-64
+Platform:        macOS
+Parent Process:  bash [67864]
+
+Date/Time:       2022-05-01 19:55:09.856 -0700
+Launch Time:     2022-05-01 19:55:07.305 -0700
+OS Version:      macOS 12.3.1 (21E258)
+Report Version:  7
+Analysis Tool:   /usr/bin/leaks
+
+Physical footprint:         2516K
+Physical footprint (peak):  2540K
+----
+
+leaks Report Version: 4.0, multi-line stacks
+Process 67865: 4747 nodes malloced for 269 KB
+Process 67865: 0 leaks for 0 total leaked bytes.
+
+Surya@suryas-mbp TreeORAM % 

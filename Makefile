@@ -12,6 +12,15 @@ main:
 	g++ -std=c++17 -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
 	./TreeORAM > testing.txt
 
+test: 
+	clear
+	export MallocStackLogging=1
+	g++ -std=c++17 -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
+	./TreeORAM > testing.txt
+
+
 # profile: 
 # 	perf record ./TreeORAM
 # 	perf annotate 
+
+# pprof -top /Users/Surya/Desktop/TreeORAM/TreeORAM /Users/Surya/Desktop/TreeORAM/profile.pb.gz 
