@@ -27,9 +27,9 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 8; // size of tree
+const int N = 4096; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 3; // Size of bucket is logN        *** MANUAL FILL ***
+const int BUCKETSIZE = 12; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
@@ -303,9 +303,7 @@ class Block{
     }
 
     void emptyArray(unsigned char emptying[], int size){
-        for(int i = 0; i < size; i++){
-            emptying[i] = 0; 
-        }
+        std::fill_n(emptying, BUCKETSIZE, 0x00);
     }
 
     void makePayload(){ // create payload for encrypting data
@@ -922,7 +920,7 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world" << endl;
 
-    //multipleTests(1); 
+    multipleTests(1); 
 
     // Client* c1 =  Client();
 
@@ -952,31 +950,31 @@ int main(){
     // bu->decryptBucket(key); 
     // bu->printBucket();
 
-    Client* c1 = new Client(); 
-    Server* s = new Server();
+    // Client* c1 = new Client(); 
+    // Server* s = new Server();
 
-    c1->initServer(s);  
+    // c1->initServer(s);  
 
-    c1->write(s, 3,"Hello"); 
-    c1->write(s, 8,"Working"); 
-    c1->write(s, 1000,"yay!");
+    // c1->write(s, 3,"Hello"); 
+    // c1->write(s, 8,"Working"); 
+    // c1->write(s, 1000,"yay!");
     
-    c1->printClient(); 
-    s->printServer();
+    // c1->printClient(); 
+    // s->printServer();
 
-    string hello = c1->read(s,3); 
-    string working = c1->read(s,8);
-    string yay = c1->read(s,1000); 
+    // string hello = c1->read(s,3); 
+    // string working = c1->read(s,8);
+    // string yay = c1->read(s,1000); 
 
-    c1->printClient(); 
-    s->printServer(); 
+    // c1->printClient(); 
+    // s->printServer(); 
 
-    cout << hello << " " << working << " " << yay << endl; 
+    // cout << hello << " " << working << " " << yay << endl; 
 
-    delete c1; 
-    delete s; 
+    // delete c1; 
+    // delete s; 
 
-    fscanf(stdin, "c"); // wait for user to enter input from keyboard
+    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
     //cout << uhoh << endl; 
 
 }   
