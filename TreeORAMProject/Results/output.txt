@@ -1,0 +1,294 @@
+hello world
+
+ --- Client Position Map ---
+	UID	LEAF
+	3	14
+	8	7
+	1000	12
+ --------------------------
+ ----- SERVER STATE START ----- 
+
+ --- TREE of size 15 --- 
+
+ --- NODE 0 --- 
+Left Index: 1 Right Index: 2 Parent Index: -1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 1 --- 
+Left Index: 3 Right Index: 4 Parent Index: 0
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 2 --- 
+Left Index: 5 Right Index: 6 Parent Index: 0
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 3 --- 
+Left Index: 7 Right Index: 8 Parent Index: 1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 4 --- 
+Left Index: 9 Right Index: 10 Parent Index: 1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 5 --- 
+Left Index: 11 Right Index: 12 Parent Index: 2
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 1000 LEAF: 12 DATA: yay!
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 6 --- 
+Left Index: 13 Right Index: 14 Parent Index: 2
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 7 --- 
+Left Index: -1 Right Index: -1 Parent Index: 3
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 8 LEAF: 7 DATA: Working
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 8 --- 
+Left Index: -1 Right Index: -1 Parent Index: 3
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 9 --- 
+Left Index: -1 Right Index: -1 Parent Index: 4
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 10 --- 
+Left Index: -1 Right Index: -1 Parent Index: 4
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 11 --- 
+Left Index: -1 Right Index: -1 Parent Index: 5
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 12 --- 
+Left Index: -1 Right Index: -1 Parent Index: 5
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 13 --- 
+Left Index: -1 Right Index: -1 Parent Index: 6
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 14 --- 
+Left Index: -1 Right Index: -1 Parent Index: 6
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 3 LEAF: 14 DATA: Hello
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+ ------ SERVER STATE END ------ 
+
+ --- Client Position Map ---
+	UID	LEAF
+	3	7
+	8	11
+	1000	14
+ --------------------------
+ ----- SERVER STATE START ----- 
+
+ --- TREE of size 15 --- 
+
+ --- NODE 0 --- 
+Left Index: 1 Right Index: 2 Parent Index: -1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: 3 LEAF: 7 DATA: Hello
+BLOCK ID: 8 LEAF: 11 DATA: Working
+BLOCK ID: 1000 LEAF: 14 DATA: yay!
+--------------------------
+
+ --- NODE 1 --- 
+Left Index: 3 Right Index: 4 Parent Index: 0
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 2 --- 
+Left Index: 5 Right Index: 6 Parent Index: 0
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 3 --- 
+Left Index: 7 Right Index: 8 Parent Index: 1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 4 --- 
+Left Index: 9 Right Index: 10 Parent Index: 1
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 5 --- 
+Left Index: 11 Right Index: 12 Parent Index: 2
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 6 --- 
+Left Index: 13 Right Index: 14 Parent Index: 2
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 7 --- 
+Left Index: -1 Right Index: -1 Parent Index: 3
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 8 --- 
+Left Index: -1 Right Index: -1 Parent Index: 3
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 9 --- 
+Left Index: -1 Right Index: -1 Parent Index: 4
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 10 --- 
+Left Index: -1 Right Index: -1 Parent Index: 4
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 11 --- 
+Left Index: -1 Right Index: -1 Parent Index: 5
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 12 --- 
+Left Index: -1 Right Index: -1 Parent Index: 5
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 13 --- 
+Left Index: -1 Right Index: -1 Parent Index: 6
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+
+ --- NODE 14 --- 
+Left Index: -1 Right Index: -1 Parent Index: 6
+
+--- BUCKET w/ size 3 --- 
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+--------------------------
+ ------ SERVER STATE END ------ 
+Hello Working yay!
