@@ -14,6 +14,8 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <gperftools/profiler.h>
+
 
 using namespace std;
 using namespace std::chrono;
@@ -40,6 +42,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
+const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -342,48 +345,54 @@ class Block{
 
     }
 
-    unsigned char* easy_encrypt(unsigned char *key){
+    void easy_encrypt(unsigned char *key){
 
-        makePayload();
-        generateIV(); 
+        if(ENCRYPTION){
 
-        unsigned char plaintext[data.length()];
-        string2UnsignedChar(plaintext);
-        
-        /*
-        * Buffer for ciphertext. Ensure the buffer is long enough for the
-        * ciphertext which may be longer than the plaintext, depending on the
-        * algorithm and mode.
-        */
+            makePayload();
+            generateIV(); 
 
-        /* Encrypt the plaintext */
-        cipher_len = encrypt (plaintext, strlen((char *)plaintext), key, iv, ciphertext);
+            unsigned char plaintext[data.length()];
+            string2UnsignedChar(plaintext);
+            
+            /*
+            * Buffer for ciphertext. Ensure the buffer is long enough for the
+            * ciphertext which may be longer than the plaintext, depending on the
+            * algorithm and mode.
+            */
 
-        uid = -2; 
-        leaf = -2; 
-        data = ""; 
-        encrypted = true; 
-        return ciphertext; 
+            /* Encrypt the plaintext */
+            cipher_len = encrypt (plaintext, strlen((char *)plaintext), key, iv, ciphertext);
+
+            uid = -2; 
+            leaf = -2; 
+            data = ""; 
+            encrypted = true; 
+        }
 
     }
 
     void easy_decrypt(unsigned char *key){
-    
-    unsigned char decryptedtext[BUFFER_SIZE];
-    int decryptedtext_len;
 
-    /* Decrypt the ciphertext */
-    decryptedtext_len = decrypt(ciphertext, cipher_len, key, iv, decryptedtext);
-    decryptedtext[decryptedtext_len] = '\0';
-    data = unsignedChar2String(decryptedtext); 
+        if(ENCRYPTION){
+        
+            unsigned char decryptedtext[BUFFER_SIZE];
+            int decryptedtext_len;
 
-    breakPayload();
+            /* Decrypt the ciphertext */
+            decryptedtext_len = decrypt(ciphertext, cipher_len, key, iv, decryptedtext);
+            decryptedtext[decryptedtext_len] = '\0';
+            data = unsignedChar2String(decryptedtext); 
 
-    emptyArray(iv, IV_SIZE/BYTE_SIZE);  
-    encrypted = false;
+            breakPayload();
 
-    emptyArray(ciphertext, BUFFER_SIZE);  
-    cipher_len = 0; 
+            emptyArray(iv, IV_SIZE/BYTE_SIZE);  
+            encrypted = false;
+
+            emptyArray(ciphertext, BUFFER_SIZE);  
+            cipher_len = 0; 
+
+        }
 
     }
 
@@ -732,6 +741,8 @@ class Client{
         delete s->tree->nodes[0]; 
         s->tree->nodes[0] = root; 
 
+        evict(s);
+
         return data; 
     }
 
@@ -744,13 +755,13 @@ class Client{
         int leaf = position_map[uid]; 
 
         readAndRemoveParallel(s,uid,leaf); //remove the value from tree if it exists 
+        
+        position_map[uid] = randomLeaf(); // reassign the block to write a new leaf
+        leaf = position_map[uid];
 
         Node* root = fetch(s, 0); // fetch node and write back to it 
-
-        if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
-            root->bucket->writeToBucket(uid, leaf, data);  
-        }
-
+        root->bucket->writeToBucket(uid, leaf, data);  
+    
         root->bucket->encryptBucket(key); 
         delete s->tree->nodes[0]; 
         s->tree->nodes[0] = root;
@@ -920,35 +931,9 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world" << endl;
 
+    ProfilerStart("TreeORAM.prof"); //Start profiling section and save to file
     multipleTests(1); 
-
-    // Client* c1 =  Client();
-
-    // Block b0(5,6, "Check");
-
-    // b0.easy_encrypt(c1->key); 
-    // b0.printBlock();
-
-    // b0.easy_decrypt(c1->key); 
-    // b0.printBlock();
-
-    // unsigned char* key = generateKey(); 
-
-    // Block* b0 = new Block(0,3, "Check0");
-    // Block* b1 = new Block(1,4, "Check1");
-    // Block* b2 = new Block(2,5, "Check2");
-
-    // Bucket* bu = new Bucket(); 
-
-    // bu->blocks[0] =  b0; 
-    // bu->blocks[1] =  b1; 
-    // bu->blocks[2] =  b2; 
-
-    // bu->encryptBucket(key); 
-    // bu->printBucket();
-
-    // bu->decryptBucket(key); 
-    // bu->printBucket();
+    ProfilerStop(); //End profiling section
 
     // Client* c1 = new Client(); 
     // Server* s = new Server();
@@ -958,6 +943,10 @@ int main(){
     // c1->write(s, 3,"Hello"); 
     // c1->write(s, 8,"Working"); 
     // c1->write(s, 1000,"yay!");
+
+    // c1->write(s, 2,"more"); 
+    // c1->write(s, 9,"data"); 
+    // c1->write(s, 11,"is good");
     
     // c1->printClient(); 
     // s->printServer();
@@ -966,10 +955,14 @@ int main(){
     // string working = c1->read(s,8);
     // string yay = c1->read(s,1000); 
 
+    // string more = c1->read(s,2); 
+    // string data = c1->read(s,9);
+    // string good = c1->read(s,11); 
+
     // c1->printClient(); 
     // s->printServer(); 
 
-    // cout << hello << " " << working << " " << yay << endl; 
+    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl; 
 
     // delete c1; 
     // delete s; 
