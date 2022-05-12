@@ -1,5 +1,5 @@
 hello world
 ___ Reads in microseconds ___
-[7270578, ]
+[7007985, ]
 ___ Writes in microseconds ___
-[7311631, ]
+[7307924, ]

@@ -9,14 +9,14 @@
 
 main:
 	clear
-	g++ -std=c++17 -lprofiler -lpthread -lcrypto  PathORAM.cpp -o PathORAM 
-	./PathORAM> testing.txt
+	g++ -std=c++17 -lprofiler -lcrypto  PathORAM.cpp -o PathORAM 
+	./PathORAM > testing.txt
 
-test: 
-	clear
-	export MallocStackLogging=1
-	g++ -std=c++17 -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
-	./TreeORAM > testing.txt
+# test: 
+# 	clear
+# 	export MallocStackLogging=1
+# 	g++ -std=c++17 -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
+# 	./TreeORAM > testing.txt
 
 
 # profile: 

@@ -7,7 +7,6 @@
 #include <string>
 #include <cstring>
 #include <bitset>
-#include <thread>
 #include <chrono>
 
 #include <openssl/conf.h>
@@ -29,9 +28,9 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 4096; // size of tree
+const int N = 8; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 12; // Size of bucket is logN        *** MANUAL FILL ***
+const int BUCKETSIZE = 4; // Size of bucket is set to 4
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
@@ -159,6 +158,16 @@ int parent(int index){ // get index of parent node
         path[backwards] = currentNode; 
         backwards--; 
         currentNode = parent(currentNode); 
+    }
+}
+
+int commonAncestor(int leaf1, int leaf2){
+
+    if (leaf1 == leaf2){
+        return leaf1; 
+    }
+    else{
+        return commonAncestor(parent(leaf1), parent(leaf2)); 
     }
 }
 
@@ -306,7 +315,11 @@ class Block{
     }
 
     void emptyArray(unsigned char emptying[], int size){
-        std::fill_n(emptying, BUCKETSIZE, 0x00);
+        std::fill_n(emptying, BUCKETSIZE, 0x00); // using standard fill instead of for loop reduced latency by 1/2
+        
+        // for(int i = 0; i < size; i++){ 
+        //     emptying[i] = 0; 
+        // }
     }
 
     void makePayload(){ // create payload for encrypting data
@@ -424,21 +437,16 @@ class Bucket{
         }
     }
 
-    Block* pop(){ // pop off block of data if it exisits. otherwise return dummy
-
-        Block* dummy = new Block(); // deleted 
-
-        for(int i = 0; i < BUCKETSIZE; i++){
-
-            if(blocks[i]->uid != -1){ // if data exists
-                Block* temp = blocks[i]; 
-                blocks[i] = dummy; 
-                return temp; 
+    int findDummyIndex(){
+        for (int i = 0; i < BUCKETSIZE; i++){
+            if (blocks[i]->uid == -1){
+                return i; 
             }
         }
-        return dummy; 
 
+        return -1; 
     }
+
 
     void encryptBucket(unsigned char* key){
         for(int i = 0; i < BUCKETSIZE; i++){
@@ -449,18 +457,6 @@ class Bucket{
     void decryptBucket(unsigned char* key){
         for(int i = 0; i < BUCKETSIZE; i++){
             blocks[i]->easy_decrypt(key);
-        }
-    }
-    
-
-    void writeToBucket(int uid, int leaf, string data){
-
-        for(int i = 0; i < BUCKETSIZE; i++){
-            if (blocks[i]->uid == -1){
-                delete blocks[i];
-                blocks[i] = new Block(uid,leaf,data); // will delete when ~ called
-                break; 
-            }
         }
     }
 
@@ -569,256 +565,17 @@ class Server{
     
 };
 
-Node* globalFetch(Server* s,int nid, unsigned char* key){ // fetch a node from the server and replace with dummy node
-
-    Node* dummy = new Node();
-    dummy->bucket->encryptBucket(key); 
-
-    Node* wanted  = s->tree->nodes[nid];
-    wanted->bucket->decryptBucket(key);  
-
-    s->tree->nodes[nid] = dummy; // deleted with ~
-
-    return wanted; 
-
-}
-
-void globalMultiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store, unsigned char* key){
-    for(int i=start; i <end; i++){  // fetch all the nodes from server
-        store[i] = globalFetch(s, fetchingIndices[i], key); // parallelize 
-    }
-}
-
-void checkBucket(Node** nodes, int index,int targetUID, string* solution){
-
-    Block* dummy = new Block(); // dummy block to swap out 
-    Node* currentNode = nodes[index]; 
-    Bucket* currentBucket = currentNode->bucket; 
-
-    for (int b = 0; b < BUCKETSIZE; b++){ // iterate through blocks in bucket
-
-        Block* currentBlock = currentBucket->blocks[b]; 
-        if(currentBlock->uid == targetUID){ // if ids are same
-            *solution = currentBlock->data; //retreive data
-            nodes[index]->bucket->blocks[b] = dummy; //replace with dummy block // deleted with ~
-            delete currentBlock;
-            return;  
-            // b = BUCKETSIZE; 
-
-        }
-    }
-    delete dummy; 
-}
-
-void multiBucketCheck(int start, int end, Node** nodes,int targetUID, string* solution){
-
-    for(int i=start; i <end; i++){  // fetch all the nodes from server
-        checkBucket(nodes, i, targetUID, solution);
-    }
-
-}
-
-void nodeToServer(Server* s, int i, int* path, Node** nodes, unsigned char* key){
-    int nid = path[i]; 
-    Node* n = nodes[i];
-    n->bucket->encryptBucket(key);
-    delete s->tree->nodes[nid];    
-    s->tree->nodes[nid] = n; 
-}
-
-void multiNodesToServer(int start, int end, Server* s, int* path, Node** nodes, unsigned char* key){
-    for(int i = start; i < end; i++){
-        nodeToServer(s,i,path,nodes,key); 
-    }
-}
-
 class Client{
     public: 
         map<int,int> position_map; // client will store position map
+        vector<Block*> stash; 
+
         unsigned char key[KEY_SIZE/BYTE_SIZE]; // deleted in Client deconstructor ]; 
 
     Client(){ // constructor for Node
         position_map.clear(); 
         generateKey(key);
 
-    }
-
-    Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
-
-        Node* dummy = new Node();
-        dummy->bucket->encryptBucket(key);
-
-        Node* wanted  = s->tree->nodes[nid]; 
-        wanted->bucket->decryptBucket(key);
-
-        s->tree->nodes[nid] = dummy; // deleted with ~
-        return wanted; 
-
-    }
-
-    void multiFetch(Server* s, int start, int end, int* fetchingIndices, Node** store){
-        for(int i=start; i <end; i++){  // fetch all the nodes from server
-            store[i] = fetch(s, fetchingIndices[i]); // parallelize 
-        } // this function updated with parallel version called global multiFetch 
-    }
-
-    string readAndRemoveParallel(Server* s,int uid, int leaf){
-        
-        int path[PATHSIZE]; // deleted
-        getPath(leaf, path); // get the indexes of the path
-        int* pathP = path; 
-
-        
-        Node* nodes[PATHSIZE];
-        Node** nP = nodes; 
-
-        int step = PATHSIZE / THREADS; // how much to split up array 
-        std::vector<std::thread> threads; 
-
-        for (int i = 0; i < THREADS; i++) { // parallel fetching the buckets from the server
-            int start = i * step; 
-            int end = (i+1) * step; 
-            threads.push_back(std::thread(globalMultiFetch, s, start, end, pathP, nP, key));
-        }
-
-        for (std::thread &t : threads) {
-            if (t.joinable()) {
-                t.join();
-            }
-        }
-
-        string data = DUMMY;
-        string* dP = &data;
-
-        for (int i = 0; i < THREADS; i++) { // parallel checking buckets for target data 
-            int start = i * step; 
-            int end = (i+1) * step; 
-            threads.push_back(std::thread(multiBucketCheck, start, end, nP, uid, dP));
-        }
-
-        for (std::thread &t : threads) {
-            if (t.joinable()) {
-                t.join();
-            }
-        }
-
-        for (int i = 0; i < THREADS; i++) { // write path back to server
-            int start = i * step; 
-            int end = (i+1) * step; 
-            threads.push_back(std::thread(multiNodesToServer, start, end, s, pathP, nP, key));
-        }
-
-        for (std::thread &t : threads) {
-            if (t.joinable()) {
-                t.join();
-            }
-        }  
-
-        //Removes all elements in vector
-        threads.clear();
-        //Frees the memory which is not used by the vector
-        threads.shrink_to_fit();
-
-        return data; // return dummy data if block DNE 
-        
-    }
-
-    string read(Server* s, int uid){
-
-        int oldLeaf = position_map[uid]; // create random new leaf for block
-        int newLeaf = randomLeaf();
-        position_map[uid] = newLeaf;
-
-        string data = readAndRemoveParallel(s,uid,oldLeaf); 
-
-        Node* root = fetch(s, 0); // fetch node and write back to it 
-
-        if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
-            root->bucket->writeToBucket(uid,newLeaf,data);  
-        }
-
-        root->bucket->encryptBucket(key);
-        delete s->tree->nodes[0]; 
-        s->tree->nodes[0] = root; 
-
-        evict(s);
-
-        return data; 
-    }
-
-     void write(Server* s, int uid, string data){
-
-        if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
-            position_map[uid] = randomLeaf(); 
-        }
-        
-        int leaf = position_map[uid]; 
-
-        readAndRemoveParallel(s,uid,leaf); //remove the value from tree if it exists 
-        
-        position_map[uid] = randomLeaf(); // reassign the block to write a new leaf
-        leaf = position_map[uid];
-
-        Node* root = fetch(s, 0); // fetch node and write back to it 
-        root->bucket->writeToBucket(uid, leaf, data);  
-    
-        root->bucket->encryptBucket(key); 
-        delete s->tree->nodes[0]; 
-        s->tree->nodes[0] = root;
-
-        evict(s);  
-    }
-
-    void evict(Server* s){
-        
-        int numOfEvictions = 2*PATHSIZE-3;
-        int evicting[numOfEvictions]; // number of blocks to evict *deleted*
-        blocksToEvict(evicting); 
-        
-        for(int i = 0; i < numOfEvictions; i++){
-                
-            int evictingIndex = evicting[i];
-
-            Node* currentEvict = fetch(s,evictingIndex);  
-
-            int leftIndex = left(evictingIndex); // get children that are getting new block
-            int rightIndex = right(evictingIndex);
-            Node* leftChild = fetch(s,leftIndex); 
-            Node* rightChild = fetch(s, rightIndex); 
-
-            Block* real = currentEvict->bucket->pop();
-
-            if(real->uid != -1){ // real block so evict it
-
-                int possible = real->leaf; 
-
-                while (possible != leftIndex && possible !=rightIndex){
-                        possible = parent(possible); 
-                }
-
-                if(possible == leftIndex){
-                    leftChild->bucket->writeToBucket(real->uid, real->leaf, real->data); 
-                }
-                else{
-                    rightChild->bucket->writeToBucket(real->uid, real->leaf, real->data); 
-                }
-            }
-
-            delete real; 
-
-            currentEvict->bucket->encryptBucket(key); 
-            leftChild->bucket->encryptBucket(key); 
-            rightChild->bucket->encryptBucket(key);
-
-            delete s->tree->nodes[evictingIndex];
-            delete s->tree->nodes[leftIndex];
-            delete s->tree->nodes[rightIndex];
-
-            s->tree->nodes[evictingIndex] = currentEvict; // put the eviction node and children back 
-            s->tree->nodes[leftIndex] = leftChild; 
-            s->tree->nodes[rightIndex] = rightChild; 
-
-        }
     }
 
     void initServer(Server* s){
@@ -841,12 +598,169 @@ class Client{
                 << '\n';
         }
 
+        cout << "\n --- Client Stash ---" << endl;
+        for(Block* i : stash){
+            i->printBlock(); 
+        }
+
         cout << " --------------------------" << endl;
     }
 
+    Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
+
+        Node* dummy = new Node();
+        dummy->bucket->encryptBucket(key);
+
+        Node* wanted  = s->tree->nodes[nid]; 
+        wanted->bucket->decryptBucket(key);
+
+        s->tree->nodes[nid] = dummy; // deleted with ~
+        return wanted; 
+
+    }
+
+    void deleteStashDummys(){
+        int size = stash.size();
+
+        Block* check; 
+
+        for(int i = 0; i < size; i ++){
+            check = stashGetBack();
+            if (check->uid == -1){
+                delete check; 
+            }
+            else{
+                stashPutFront(check); 
+            }
+
+        }
+
+        stash.shrink_to_fit(); // clear unused data
+    }
+
+    void fillStash(Server* s, int leaf){
+        int path[PATHSIZE]; // deleted
+        getPath(leaf, path); // get the indexes of the path
+
+        for(int i = 0; i < PATHSIZE; i++){
+            Node* current = fetch(s, path[i]); 
+            for(int z = 0; z < BUCKETSIZE; z++){
+                stash.push_back(current->bucket->blocks[z]); 
+            }
+        }
+
+        deleteStashDummys();
+    }
+
+    Block* stashGetBack(){
+
+        Block* check = stash.back();
+        stash.pop_back();
+
+        return check; 
+
+    }
+
+    void stashPutFront(Block* newFront){
+        stash.insert(stash.begin(), newFront);
+    }
+
+    string read(Server* s, int uid){
+
+        int oldLeaf = position_map[uid]; // create random new leaf for block
+        int newLeaf = randomLeaf();
+        position_map[uid] = newLeaf;
+
+        fillStash(s,oldLeaf); 
+        Block* found; 
+
+        for(Block* i : stash){
+            if(i->uid  == uid){
+                found = i; 
+                break; 
+            }
+        }
+        string store = found->data; // store answer before encrypting it away!
+        evict(s, oldLeaf);
+        return store; 
+
+    }
+
+    void write(Server* s, int uid, string data){
+
+        if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
+            position_map[uid] = randomLeaf(); // assign a leaf node
+            int leaf = position_map[uid];
+
+            fillStash(s,leaf); // fetch path from stash
+
+            Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
+            stash.push_back(alpha);
+        }
+        else{ // uid is in tree so get it and update it
+            
+            int oldLeaf = position_map[uid]; // create random new leaf for block
+            int newLeaf = randomLeaf();
+            position_map[uid] = newLeaf;
+
+            fillStash(s,oldLeaf); // fetch path from stash
+
+            for(Block* i : stash){ // iterate over stash, looking to update block 
+                if(i->uid  == uid){
+                    i->data = data; 
+                    i->leaf = newLeaf; 
+                    break; 
+                }
+            }
+        }
+
+        evict(s,position_map[uid]); 
+    }
+
+    void evict(Server* s, int leaf){
+
+        int path[PATHSIZE]; // deleted
+        getPath(leaf, path); // get the indexes of the path
+        
+        for(int n = PATHSIZE-1; n >= 0; n--){ // iterate fromn bottom of path to top 
+            
+            int nodeID = path[n]; // the nodeID of current node 
+            Node* nodey = new Node();
+            int fillable = 0; // last place a block was written
+
+            int size = stash.size();
+            for(int i = 0; i < size; i++){ // look over stash 
+
+                Block* curr = stashGetBack(); // remove block from stash 
+                int common = commonAncestor(curr->leaf, leaf); // find lowest node block can be put in 
+
+                if(nodeID <= common){ // if block can be put in this node
+                    nodey->bucket->blocks[fillable] = curr; // add block to the bucket
+                    fillable++;
+                }
+                else{
+                    stashPutFront(curr); // if cant put filled, put bac
+                }
+
+                if(fillable == BUCKETSIZE){
+                    break; 
+                }
+            }
+            
+            delete s->tree->nodes[nodeID]; 
+            nodey->bucket->encryptBucket(key); 
+            s->tree->nodes[nodeID] = nodey;
+        }
+    }
+
     ~Client(){ //deallocate
-       
         position_map.clear(); 
+
+        for(Block* i : stash){
+            delete i; 
+        }
+        stash.shrink_to_fit();
+        stash.clear(); 
 
     }
 };
@@ -928,47 +842,67 @@ void multipleTests(int iterations){
 
 }
 
+
 int main(){
     cout << "hello world" << endl;
 
-    ProfilerStart("TreeORAM.prof"); //Start profiling section and save to file
-    multipleTests(1); 
-    ProfilerStop(); //End profiling section
+    //
+    //multipleTests(1); 
 
-    // Client* c1 = new Client(); 
-    // Server* s = new Server();
+    Client* c1 = new Client(); 
+    Server* s = new Server();
 
-    // c1->initServer(s);  
+    c1->initServer(s);  
 
-    // c1->write(s, 3,"Hello"); 
-    // c1->write(s, 8,"Working"); 
-    // c1->write(s, 1000,"yay!");
+    c1->write(s, 1,"Hello"); 
+    c1->write(s, 2,"Working"); 
+    c1->write(s, 3,"yay!");
 
-    // c1->write(s, 2,"more"); 
-    // c1->write(s, 9,"data"); 
-    // c1->write(s, 11,"is good");
-    
-    // c1->printClient(); 
-    // s->printServer();
+    c1->write(s, 4,"more"); 
+    c1->write(s, 5,"data"); 
+    c1->write(s, 6,"is good");
 
-    // string hello = c1->read(s,3); 
-    // string working = c1->read(s,8);
-    // string yay = c1->read(s,1000); 
+    c1->write(s, 7,"triple"); 
+    c1->write(s, 8,"checking"); 
+    c1->write(s, 9,"this stuff");
 
-    // string more = c1->read(s,2); 
-    // string data = c1->read(s,9);
-    // string good = c1->read(s,11); 
+    c1->write(s, 10,"aaaa"); 
+    c1->write(s, 11,"bbb"); 
+    c1->write(s, 12,"cccc");
+    c1->write(s, 13,"dddd");
+    c1->write(s, 14,"eeeee");
+    c1->write(s, 15,"ffff");
+    c1->write(s, 16,"ggggg");
+    c1->write(s, 17,"hhhhhhh");
+    c1->write(s,18,"iiiii");
 
-    // c1->printClient(); 
-    // s->printServer(); 
+    c1->write(s, 19,"aaaa"); 
+    c1->write(s, 20,"bbb"); 
+    c1->write(s, 21,"cccc");
+    c1->write(s, 22,"dddd");
+    c1->write(s, 23,"eeeee");
+    c1->write(s, 24,"ffff");
+    c1->write(s, 25,"ggggg");
+    c1->write(s, 26,"hhhhhhh");
+    c1->write(s,27,"iiiii");
+    c1->write(s, 28,"hhhhhhh");
+    c1->write(s,29,"iiiii");
 
-    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl; 
+    string hello = c1->read(s, 1); 
 
-    // delete c1; 
-    // delete s; 
+    string working = c1->read(s, 2); 
+    string yay = c1->read(s, 3);
 
-    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
-    //cout << uhoh << endl; 
+    string more = c1->read(s, 4); 
+    string data = c1->read(s, 5); 
+    string good = c1->read(s, 6);
+ 
+    c1->printClient();
+    s->printServer();
+    cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
+    delete s; 
+    delete c1;
+
+    fscanf(stdin, "c"); // wait for user to enter input from keyboard
 }   
-
