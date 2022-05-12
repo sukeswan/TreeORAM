@@ -645,8 +645,11 @@ class Client{
         for(int i = 0; i < PATHSIZE; i++){
             Node* current = fetch(s, path[i]); 
             for(int z = 0; z < BUCKETSIZE; z++){
-                stash.push_back(current->bucket->blocks[z]); 
+                Block* original = current->bucket->blocks[z];
+                Block* copy = new Block(original->uid,original->leaf,original->data); 
+                stash.push_back(copy); 
             }
+            delete current; 
         }
 
         deleteStashDummys();
@@ -735,6 +738,7 @@ class Client{
                 int common = commonAncestor(curr->leaf, leaf); // find lowest node block can be put in 
 
                 if(nodeID <= common){ // if block can be put in this node
+                    delete nodey->bucket->blocks[fillable];
                     nodey->bucket->blocks[fillable] = curr; // add block to the bucket
                     fillable++;
                 }
@@ -756,11 +760,18 @@ class Client{
     ~Client(){ //deallocate
         position_map.clear(); 
 
-        for(Block* i : stash){
-            delete i; 
+        // for(Block* i : stash){
+        //     delete i; 
+        // }
+
+
+        for (int i = 0; i < stash.size(); i++)
+        {
+            delete stash[i];
         }
         stash.shrink_to_fit();
         stash.clear(); 
+
 
     }
 };
@@ -846,8 +857,7 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world" << endl;
 
-    //
-    //multipleTests(1); 
+    multipleTests(1); 
 
     Client* c1 = new Client(); 
     Server* s = new Server();
@@ -904,5 +914,5 @@ int main(){
     delete s; 
     delete c1;
 
-    fscanf(stdin, "c"); // wait for user to enter input from keyboard
+    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
 }   

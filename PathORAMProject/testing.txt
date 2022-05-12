@@ -1,36 +1,40 @@
 hello world
+___ Reads in microseconds ___
+[529039, ]
+___ Writes in microseconds ___
+[398842, ]
 
  --- Client Position Map ---
 	UID	LEAF
 	1	14
-	2	8
-	3	9
-	4	7
+	2	14
+	3	8
+	4	11
 	5	10
-	6	9
-	7	7
-	8	13
-	9	10
-	10	12
-	11	7
+	6	13
+	7	12
+	8	10
+	9	9
+	10	7
+	11	12
 	12	12
 	13	11
-	14	9
-	15	10
-	16	14
-	17	14
-	18	8
-	19	7
-	20	11
-	21	14
+	14	13
+	15	7
+	16	9
+	17	8
+	18	10
+	19	11
+	20	13
+	21	12
 	22	8
-	23	12
-	24	12
-	25	7
-	26	12
-	27	10
-	28	13
-	29	7
+	23	14
+	24	7
+	25	12
+	26	11
+	27	8
+	28	7
+	29	12
 
  --- Client Stash ---
  --------------------------
@@ -42,150 +46,150 @@ hello world
 Left Index: 1 Right Index: 2 Parent Index: -1
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 43 d0 31 63 d4 8f 57 0b-11 81 87 65 e2 dc d7 a0   C.1c..W....e....
-Ciphertext for Encrypted Block: 0000 - 3c 60 26 89 e9 a8 af 4c-17 4e d1 f9 be f8 cf 4f   <`&....L.N.....O
-Ciphertext for Encrypted Block: 0000 - 39 e4 8a b4 0c 44 88 fe-6a 95 e2 f1 0c a2 b7 5e   9....D..j......^
-Ciphertext for Encrypted Block: 0000 - 7e 04 18 72 95 8c 6b f9-44 bd 33 2d 13 15 da ee   ~..r..k.D.3-....
+Ciphertext for Encrypted Block: 0000 - 6f ab 64 21 37 66 9b d9-b6 75 af 73 14 7b 0b c1   o.d!7f...u.s.{..
+Ciphertext for Encrypted Block: 0000 - 0f a6 1e ad fb 80 52 70-13 01 ea d4 c9 4c 52 87   ......Rp.....LR.
+Ciphertext for Encrypted Block: 0000 - 32 2d 42 0f 9f 48 c3 e6-59 36 74 96 4e 0c a7 36   2-B..H..Y6t.N..6
+Ciphertext for Encrypted Block: 0000 - b2 0a 8f ed 40 b5 e8 72-ba f8 ad f7 11 81 71 92   ....@..r......q.
 --------------------------
 
  --- NODE 1 --- 
 Left Index: 3 Right Index: 4 Parent Index: 0
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 9e 9f 8c d2 55 4d 32 c3-62 fb 5b 3b 8e 5e 31 c9   ....UM2.b.[;.^1.
-Ciphertext for Encrypted Block: 0000 - 4b e7 cc 37 5d 2d 9d 45-3a ad a2 dc a2 ea 62 6f   K..7]-.E:.....bo
-Ciphertext for Encrypted Block: 0000 - 45 89 f5 c1 54 f7 71 5d-56 84 95 3e 7d 58 2c 5a   E...T.q]V..>}X,Z
-Ciphertext for Encrypted Block: 0000 - 04 c7 b7 71 31 89 d6 7d-4f b3 42 69 f5 06 af 63   ...q1..}O.Bi...c
+Ciphertext for Encrypted Block: 0000 - 1c 13 c2 6f 3b eb 9e 6f-1d c5 5a f0 82 02 33 38   ...o;..o..Z...38
+Ciphertext for Encrypted Block: 0000 - b5 2f b9 67 17 81 8b d9-2d b8 c7 cc ed 6d 3d e0   ./.g....-....m=.
+Ciphertext for Encrypted Block: 0000 - 9d 45 7e 64 cf 86 95 47-35 59 c6 07 7a ba c5 c0   .E~d...G5Y..z...
+Ciphertext for Encrypted Block: 0000 - 5c 8f e2 77 61 40 99 93-28 e6 c7 9e 7f 92 0b 55   \..wa@..(......U
 --------------------------
 
  --- NODE 2 --- 
 Left Index: 5 Right Index: 6 Parent Index: 0
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 84 a7 8f b6 41 56 7c 5f-56 0a d5 cd a1 4d 9f 43   ....AV|_V....M.C
-Ciphertext for Encrypted Block: 0000 - 25 c7 81 d3 2f 25 47 c4-5d 42 94 61 d6 62 83 85   %.../%G.]B.a.b..
-Ciphertext for Encrypted Block: 0000 - f2 f9 d5 05 64 c4 3b 9b-7e 53 9d 96 96 c9 6a 4e   ....d.;.~S....jN
-Ciphertext for Encrypted Block: 0000 - f3 00 e9 32 27 10 67 5e-5c b5 15 25 2f 05 f6 70   ...2'.g^\..%/..p
+Ciphertext for Encrypted Block: 0000 - 07 e0 f3 d4 39 63 55 21-53 9a 98 23 37 45 2e 4e   ....9cU!S..#7E.N
+Ciphertext for Encrypted Block: 0000 - b6 8d 68 1f e3 81 b7 94-d7 ac ca a0 bc 94 0e 30   ..h............0
+Ciphertext for Encrypted Block: 0000 - 5f 92 0d c7 ee ad 54 2c-10 e5 f3 38 79 a4 86 4d   _.....T,...8y..M
+Ciphertext for Encrypted Block: 0000 - 8f d4 76 7a 09 8e ba 91-d2 ef e5 8e 9b 51 2b 92   ..vz.........Q+.
 --------------------------
 
  --- NODE 3 --- 
 Left Index: 7 Right Index: 8 Parent Index: 1
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 96 7f 33 6d 2f 8a 15 e8-55 5d 30 73 2c 68 5e 94   ..3m/...U]0s,h^.
-Ciphertext for Encrypted Block: 0000 - bb b1 e2 32 b6 1d b7 85-4d ee 60 a5 35 e0 ab 5c   ...2....M.`.5..\
-Ciphertext for Encrypted Block: 0000 - 9e e0 ac 37 69 d1 00 13-b5 47 a0 3e d8 a1 52 3e   ...7i....G.>..R>
-Ciphertext for Encrypted Block: 0000 - db 77 ef 26 5a 31 3a 48-92 32 72 45 c7 5c 86 f3   .w.&Z1:H.2rE.\..
+Ciphertext for Encrypted Block: 0000 - 9f 94 dd 00 24 d6 57 9a-ea e2 9c 9e 08 12 5f 88   ....$.W......._.
+Ciphertext for Encrypted Block: 0000 - 41 03 10 61 53 82 42 83-88 5c 48 68 e9 bb 39 ff   A..aS.B..\Hh..9.
+Ciphertext for Encrypted Block: 0000 - 5b 02 14 74 16 3e 80 6e-f4 93 78 21 79 2a db bd   [..t.>.n..x!y*..
+Ciphertext for Encrypted Block: 0000 - c5 44 c4 d3 41 fe ba 44-37 96 31 1b 78 4f 8d 15   .D..A..D7.1.xO..
 --------------------------
 
  --- NODE 4 --- 
 Left Index: 9 Right Index: 10 Parent Index: 1
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 77 e6 6c 43 fd 24 9a 09-52 14 2c 84 b0 11 15 3a   w.lC.$..R.,....:
-Ciphertext for Encrypted Block: 0000 - b5 ce 2b 76 77 12 9a 03-56 eb 47 d5 07 6a 22 6d   ..+vw...V.G..j"m
-Ciphertext for Encrypted Block: 0000 - 81 2d 3e 2a f6 4b f2 af-54 c9 68 1a 06 dc fb 3f   .->*.K..T.h....?
-Ciphertext for Encrypted Block: 0000 - 22 3b 84 58 8a c2 e2 06-f8 4a 57 26 5c c3 de 84   ";.X.....JW&\...
+Ciphertext for Encrypted Block: 0000 - bd 75 bb f4 e1 79 fe 72-af f2 ce b6 2f b1 00 68   .u...y.r..../..h
+Ciphertext for Encrypted Block: 0000 - 51 20 10 4b 46 03 16 0d-75 c4 13 a2 9e 6c 40 39   Q .KF...u....l@9
+Ciphertext for Encrypted Block: 0000 - 39 ba f6 b5 e9 ca d0 cd-18 fd e1 d3 d1 1a 98 56   9..............V
+Ciphertext for Encrypted Block: 0000 - f2 39 fb be 97 ae e7 40-f5 d3 f2 60 c8 d7 49 ac   .9.....@...`..I.
 --------------------------
 
  --- NODE 5 --- 
 Left Index: 11 Right Index: 12 Parent Index: 2
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 2c a2 42 9d 03 66 20 3d-2b 77 ce 8f 66 cf 37 18   ,.B..f =+w..f.7.
-Ciphertext for Encrypted Block: 0000 - 24 d9 6b 82 ef bc 98 be-45 d9 bd 19 5d 86 aa bf   $.k.....E...]...
-Ciphertext for Encrypted Block: 0000 - 0c 1a 4c 00 9c f8 f4 8c-85 1f a0 03 e3 64 b7 36   ..L..........d.6
-Ciphertext for Encrypted Block: 0000 - 95 70 d6 12 af 4d a7 a2-6b e2 51 fd 80 b6 ac e6   .p...M..k.Q.....
+Ciphertext for Encrypted Block: 0000 - 44 86 42 36 e8 20 6e bb-38 a8 a6 d9 d3 f8 ba 83   D.B6. n.8.......
+Ciphertext for Encrypted Block: 0000 - 6b 85 93 b1 69 31 42 85-85 e1 e3 07 cc 70 96 2a   k...i1B......p.*
+Ciphertext for Encrypted Block: 0000 - bf b0 20 80 47 5d d0 b1-4a 18 cc 3a b0 32 37 4a   .. .G]..J..:.27J
+Ciphertext for Encrypted Block: 0000 - bb b8 57 b2 5c 77 89 58-3b f9 74 60 3b 46 04 3c   ..W.\w.X;.t`;F.<
 --------------------------
 
  --- NODE 6 --- 
 Left Index: 13 Right Index: 14 Parent Index: 2
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - ef 9f 29 07 d7 ca e8 ab-4b 88 71 18 b5 88 32 2b   ..).....K.q...2+
-Ciphertext for Encrypted Block: 0000 - b5 45 10 91 78 e5 ba 88-5b 99 ff 47 ef 12 87 12   .E..x...[..G....
-Ciphertext for Encrypted Block: 0000 - b7 78 6b c3 24 ad f2 c4-18 29 bf 12 8c 99 2a 39   .xk.$....)....*9
-Ciphertext for Encrypted Block: 0000 - 5d e9 c3 ce 4e 43 31 67-42 16 83 88 ed 22 e6 39   ]...NC1gB....".9
+Ciphertext for Encrypted Block: 0000 - ad 4b ed b1 fa 4b 98 0d-5c 1a ef 60 ef e5 77 c0   .K...K..\..`..w.
+Ciphertext for Encrypted Block: 0000 - cc f9 3e e5 1e bf 86 3f-23 ad 7b 7c 21 16 29 80   ..>....?#.{|!.).
+Ciphertext for Encrypted Block: 0000 - 71 fe 91 50 06 6b 50 f9-1a 5b 40 6f 0a e6 04 44   q..P.kP..[@o...D
+Ciphertext for Encrypted Block: 0000 - aa 51 f0 e1 b8 03 3a 76-24 39 49 c8 49 fe 3c e0   .Q....:v$9I.I.<.
 --------------------------
 
  --- NODE 7 --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 76 31 09 3e d1 20 1c 54-46 79 1a 1c 83 91 59 17   v1.>. .TFy....Y.
-Ciphertext for Encrypted Block: 0000 - bf 30 a5 4c 3c 83 6a f2-6a d1 08 6f 36 71 61 95   .0.L<.j.j..o6qa.
-Ciphertext for Encrypted Block: 0000 - 66 63 4a 80 28 09 fc 52-32 64 5e 6e a8 fd 7d 02   fcJ.(..R2d^n..}.
-Ciphertext for Encrypted Block: 0000 - a1 b9 98 96 2d 5e cf 63-b1 27 af 91 49 99 e4 da   ....-^.c.'..I...
+Ciphertext for Encrypted Block: 0000 - b7 d1 eb cd 06 49 d5 9b-e7 62 14 46 24 fc 81 2d   .....I...b.F$..-
+Ciphertext for Encrypted Block: 0000 - 15 93 65 57 61 77 4f f4-ce b0 82 a9 d3 5a ce 7c   ..eWawO......Z.|
+Ciphertext for Encrypted Block: 0000 - a3 0b 9a 90 62 14 e5 cd-79 fb 83 78 ae 20 f6 19   ....b...y..x. ..
+Ciphertext for Encrypted Block: 0000 - ad 9c b2 c0 72 b0 d8 f1-39 7f b3 4c 00 e9 20 3d   ....r...9..L.. =
 --------------------------
 
  --- NODE 8 --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - d6 d7 28 d3 83 bb 9f 6d-6d b1 93 58 b5 d6 8a 14   ..(....mm..X....
-Ciphertext for Encrypted Block: 0000 - ab 4a a4 98 d0 7f 8b 49-00 de 49 15 21 8c 78 d6   .J.....I..I.!.x.
-Ciphertext for Encrypted Block: 0000 - b9 f3 d1 20 8b a7 0e 41-37 93 ac 32 e0 73 0b 9b   ... ...A7..2.s..
-Ciphertext for Encrypted Block: 0000 - c1 96 1d 50 a8 17 c8 49-22 7d b8 64 fc be 82 75   ...P...I"}.d...u
+Ciphertext for Encrypted Block: 0000 - 89 12 b2 5a 13 cf 2a 40-24 4c 9f 0b 49 bc c3 af   ...Z..*@$L..I...
+Ciphertext for Encrypted Block: 0000 - 29 b3 b7 80 92 15 89 11-62 e6 67 6b bf f9 7d 6c   ).......b.gk..}l
+Ciphertext for Encrypted Block: 0000 - 93 c1 23 d9 01 ba b0 db-07 1f 2a da ac a0 4a e0   ..#.......*...J.
+Ciphertext for Encrypted Block: 0000 - ae 4d f8 91 88 2e 7f a3-9b 6f 85 30 de 0e 4b 11   .M.......o.0..K.
 --------------------------
 
  --- NODE 9 --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 9c 43 73 d1 05 95 00 eb-95 d7 ce 13 b5 86 9c 54   .Cs............T
-Ciphertext for Encrypted Block: 0000 - df 8e 34 92 3f 83 9a e2-f0 95 6a 8d f8 92 53 4c   ..4.?.....j...SL
-Ciphertext for Encrypted Block: 0000 - 95 37 62 8b 18 5b 79 b7-a3 4f f4 d9 4f bd 1e c1   .7b..[y..O..O...
-Ciphertext for Encrypted Block: 0000 - 43 f1 92 3d a3 03 a8 c4-17 03 3f 8b 2b 27 07 97   C..=......?.+'..
+Ciphertext for Encrypted Block: 0000 - b7 1b ef d0 13 62 60 b7-15 04 48 38 5f 3a 77 d3   .....b`...H8_:w.
+Ciphertext for Encrypted Block: 0000 - e6 a1 18 8b 4d db 8e 0b-5c a7 be 01 f1 45 d0 69   ....M...\....E.i
+Ciphertext for Encrypted Block: 0000 - 1e 0d 18 a0 4d ed 1e 86-ed d1 25 1d 1a b5 cd fb   ....M.....%.....
+Ciphertext for Encrypted Block: 0000 - cf 25 20 18 34 bd b1 83-68 d2 29 d5 1a f2 c1 5c   .% .4...h.)....\
 --------------------------
 
  --- NODE 10 --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 06 08 d6 18 83 bd d5 ee-b7 e9 6d 57 3b 34 51 00   ..........mW;4Q.
-Ciphertext for Encrypted Block: 0000 - b5 f6 a4 23 0b 27 dd 24-18 07 3d 92 f5 79 5b c4   ...#.'.$..=..y[.
-Ciphertext for Encrypted Block: 0000 - 4b 0a 56 b0 4e da 4f 67-cd 02 fd 60 2d ec fa b5   K.V.N.Og...`-...
-Ciphertext for Encrypted Block: 0000 - a9 3e ec 13 48 6d b2 13-0a 25 75 6e 0f da 46 42   .>..Hm...%un..FB
+Ciphertext for Encrypted Block: 0000 - 8c 02 df fa 15 05 08 97-9a e5 e6 5c f1 35 92 57   ...........\.5.W
+Ciphertext for Encrypted Block: 0000 - be ae f1 66 47 a4 4e 21-ad 6d f1 31 b0 07 99 53   ...fG.N!.m.1...S
+Ciphertext for Encrypted Block: 0000 - 64 3e d8 82 8e 14 2f 18-a4 e0 be 6a 31 57 21 21   d>..../....j1W!!
+Ciphertext for Encrypted Block: 0000 - e0 19 9b a4 f4 91 d6 0b-5e cb cd 15 53 14 1f 25   ........^...S..%
 --------------------------
 
  --- NODE 11 --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - bb 2a 61 bd 65 40 5c d1-d9 11 5d 5c d3 24 68 93   .*a.e@\...]\.$h.
-Ciphertext for Encrypted Block: 0000 - 64 ab 52 51 9c 71 f3 bd-81 80 f8 5a ea ff 3c 2e   d.RQ.q.....Z..<.
-Ciphertext for Encrypted Block: 0000 - 90 28 d4 95 82 5a e1 c0-50 5b 88 2b 42 a5 ca 11   .(...Z..P[.+B...
-Ciphertext for Encrypted Block: 0000 - 8b 59 64 10 ed 2f 96 40-07 20 9a a2 dd 4f 71 57   .Yd../.@. ...OqW
+Ciphertext for Encrypted Block: 0000 - eb dc 6b e5 74 66 04 33-be b9 a7 08 68 5d eb 5e   ..k.tf.3....h].^
+Ciphertext for Encrypted Block: 0000 - 19 46 a9 ee d1 a6 cb 78-cc f9 e3 4c 7d 65 62 e7   .F.....x...L}eb.
+Ciphertext for Encrypted Block: 0000 - be db 7b d4 24 0b ef d7-df dc 12 18 27 a1 1f 39   ..{.$.......'..9
+Ciphertext for Encrypted Block: 0000 - 10 d5 78 2e 38 1a 03 40-e6 ab 99 35 1d 97 3b dc   ..x.8..@...5..;.
 --------------------------
 
  --- NODE 12 --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 92 4f c5 6a d9 22 95 23-67 c4 ec 36 e7 86 c4 1f   .O.j.".#g..6....
-Ciphertext for Encrypted Block: 0000 - 45 4b bd ad 9b 7e 22 68-11 be 5a a1 39 01 95 8c   EK...~"h..Z.9...
-Ciphertext for Encrypted Block: 0000 - 6b c8 a5 d1 d1 74 69 a4-21 e2 12 22 1a 23 bf 53   k....ti.!..".#.S
-Ciphertext for Encrypted Block: 0000 - 1b 95 ec af 10 ec 2e 90-fc 29 74 d3 46 4b 54 1f   .........)t.FKT.
+Ciphertext for Encrypted Block: 0000 - 3f ff a7 13 2d 1f 5b f3-e3 7e 0c db 51 3f bb 35   ?...-.[..~..Q?.5
+Ciphertext for Encrypted Block: 0000 - cc 15 d3 e5 b7 6f 0a ff-7c 63 55 0f 16 60 01 7f   .....o..|cU..`..
+Ciphertext for Encrypted Block: 0000 - 14 9e ae f1 44 fb 52 3c-e7 1c 4f 85 47 5c de 84   ....D.R<..O.G\..
+Ciphertext for Encrypted Block: 0000 - 2d 1b f4 5a 97 67 1a 75-e9 39 c2 22 e9 88 20 4c   -..Z.g.u.9.".. L
 --------------------------
 
  --- NODE 13 --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - e9 9d 72 eb a7 c2 77 c1-0f f4 d1 44 2f 45 07 13   ..r...w....D/E..
-Ciphertext for Encrypted Block: 0000 - 34 b0 21 27 4c ae 28 ff-81 2d 12 8d 1c c2 84 11   4.!'L.(..-......
-Ciphertext for Encrypted Block: 0000 - 9e 09 8f c0 05 01 71 2a-65 7b 88 e1 5e ac 17 a3   ......q*e{..^...
-Ciphertext for Encrypted Block: 0000 - 21 54 e1 dd 97 e1 e4 55-d5 3f ef 9d 33 14 26 e1   !T.....U.?..3.&.
+Ciphertext for Encrypted Block: 0000 - 28 68 8f 83 51 12 10 99-94 ea 6f b3 3d cf a8 17   (h..Q.....o.=...
+Ciphertext for Encrypted Block: 0000 - 88 11 29 da 1e 5c 3f cb-13 c6 b5 44 97 cf f3 bf   ..)..\?....D....
+Ciphertext for Encrypted Block: 0000 - 24 d5 30 74 57 f0 1f 27-e5 a4 05 e1 9a 51 cd db   $.0tW..'.....Q..
+Ciphertext for Encrypted Block: 0000 - 63 ec dc e3 24 73 31 4e-b6 77 04 e9 41 32 de 2c   c...$s1N.w..A2.,
 --------------------------
 
  --- NODE 14 --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
 
 --- BUCKET w/ size 4 --- 
-Ciphertext for Encrypted Block: 0000 - 98 5e a4 25 9d c2 7a f4-bb 7f 52 63 1f cb c5 2d   .^.%..z...Rc...-
-Ciphertext for Encrypted Block: 0000 - ab 11 50 26 d3 ac c7 36-ec d7 8a 25 9c 07 ad 7f   ..P&...6...%....
-Ciphertext for Encrypted Block: 0000 - e3 c5 98 94 0a 70 b7 a0-7e 21 ff 92 ef 89 f8 b6   .....p..~!......
-Ciphertext for Encrypted Block: 0000 - 17 85 b6 a4 80 90 6d 07-78 f6 f2 e6 0a 9f b0 d3   ......m.x.......
+Ciphertext for Encrypted Block: 0000 - 8b f4 1c 0e 15 b1 c1 7e-90 b6 7b 07 bb 32 0c b4   .......~..{..2..
+Ciphertext for Encrypted Block: 0000 - e3 b0 70 81 40 99 2a ff-db 5d 1e 48 15 12 52 0b   ..p.@.*..].H..R.
+Ciphertext for Encrypted Block: 0000 - e0 6d a9 bd fc 2a 34 08-81 f8 2d 0c 3d 1b 23 7b   .m...*4...-.=.#{
+Ciphertext for Encrypted Block: 0000 - e4 da cf 52 b8 b7 e7 fe-4c 78 2f 25 f0 5b 95 46   ...R....Lx/%.[.F
 --------------------------
  ------ SERVER STATE END ------ 
 Hello Working yay! more data is good
