@@ -29,14 +29,15 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 4096; // size of tree
+const int N = 262144; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 12; // Size of bucket is logN        *** MANUAL FILL ***
+const int BUCKETSIZE = 18; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
-const int MAX_DATA = 1000; // # of random data strings to create
-const int DATA_SIZE = 10; // length of random data strings 
+const float TEST_CAPACITY = 0.75; // percentage you want to fill the tree when testing
+const int MAX_DATA = int(N*TEST_CAPACITY); // # of random data strings to create
+const int DATA_SIZE = 1000;// length of random data strings 
 
 const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
@@ -874,11 +875,11 @@ int testWrites(Client* c1, Server* s){
     }
 
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
+    auto duration = duration_cast<seconds>(stop - start);
 
-    int writes = duration.count();
-
-    return writes;
+    float writes = duration.count();
+    cout << "Writes is: " << writes << endl; 
+    return int(writes/MAX_DATA);
 }
 
 int testReads(Client* c1, Server* s){
@@ -889,10 +890,12 @@ int testReads(Client* c1, Server* s){
     }
 
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    int reads = duration.count();
+    auto duration = duration_cast<seconds>(stop - start);
+    float reads = duration.count();
 
-    return reads; 
+    cout << "Reads is: " << reads << endl; 
+    
+    return int(reads/MAX_DATA); 
 }
 
 void singleTest(int* reading, int* writing, int index){
@@ -912,28 +915,42 @@ void singleTest(int* reading, int* writing, int index){
 void multipleTests(int iterations){
     int* reads = new int[iterations]; 
     int* writes = new int[iterations]; 
+    int* avg = new int[iterations]; 
 
     for(int i = 0; i < iterations; i++){
         singleTest(reads, writes, i); 
     }
 
-    cout << "___ Reads in microseconds ___" << endl; 
+
+    for(int i = 0; i < iterations; i++){
+        avg[i] = int((reads[i] + writes[i])/2);
+    }
+
+    cout << "Results for Tree of Size 2^" << log2(N) << " (" << N << ")"  << endl; 
+    cout << "Tree filled to " << TEST_CAPACITY*100 << "%" << endl; 
+    cout << "Data strings of length " << DATA_SIZE << "\n" << endl;  
+
+    cout << "___ Average Read Latency in microseconds ___" << endl; 
     printArraySize(reads, iterations); 
 
-    cout << "___ Writes in microseconds ___" << endl; 
+    cout << "___ Average Write Latency in microseconds ___" << endl; 
     printArraySize(writes, iterations); 
+
+    cout << "___ Average Data Access Latency in microseconds ___" << endl; 
+    printArraySize(avg, iterations); 
 
     delete [] reads; 
     delete [] writes; 
+    delete [] avg; 
 
 }
 
 int main(){
-    cout << "hello world" << endl;
+    cout << "hello world\n" << endl;
 
-    ProfilerStart("TreeORAM.prof"); //Start profiling section and save to file
+    //ProfilerStart("TreeORAM.prof"); //Start profiling section and save to file
     multipleTests(1); 
-    ProfilerStop(); //End profiling section
+    //ProfilerStop(); //End profiling section
 
     // Client* c1 = new Client(); 
     // Server* s = new Server();
