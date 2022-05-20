@@ -1,2 +1,14 @@
 hello world
 
+Writes is: 3626
+Reads is: 3294
+Results for Tree of Size 2^18 (262144)
+Tree filled to 75%
+Data strings of length 1000
+
+___ Average Read Latency in microseconds ___
+[0, ]
+___ Average Write Latency in microseconds ___
+[0, ]
+___ Average Data Access Latency in microseconds ___
+[0, ]

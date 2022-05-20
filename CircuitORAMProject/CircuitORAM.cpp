@@ -28,7 +28,7 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 1048576; // size of tree
+const int N = 8; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 4; // Size of bucket is set to 4
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
@@ -42,7 +42,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
+const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -71,7 +71,17 @@ int bigLeaf(){ // returns biggest leaf value
 }
 
 int randomLeaf(){ // TODO not crypto secure
-     return smallLeaf() + rand() % ((bigLeaf() - smallLeaf() + 1)); // [smallLeaf, bigLeaf]
+    return smallLeaf() + rand() % ((bigLeaf() - smallLeaf() + 1)); // [smallLeaf, bigLeaf]
+}
+
+int randomLeafLeft(){ // get random leaf on left side of tree for eviction 
+    int maxLeafLeft = smallLeaf() + (N/2) - 1; 
+    return smallLeaf() + rand() % ((maxLeafLeft - smallLeaf() + 1)); // [smallLeaf, maxLeafLeft]
+}
+
+int randomLeafRight(){ // get random leaf on right side of tree for eviction 
+    int minLeafRight = smallLeaf() + (N/2); 
+    return minLeafRight + rand() % ((bigLeaf() - minLeafRight + 1)); // [minLeafRight, bigLeaf]
 }
 
 int randomRange(int small, int big){ // pick random value from range
@@ -86,6 +96,11 @@ void levelRange(int level, int range[]){ // get node index at level
     range[0] = low; 
     range[1] = high; 
 
+}
+
+int getLevelOff1(int nodeID){ // level is offset by 1 as stash is counted as level 0
+    int level = int(log2(nodeID+1));
+    return level+1;
 }
 
 void pick2(int small, int big, int random[]){ // pick 2 random values from range
@@ -448,6 +463,9 @@ class Bucket{
         return -1; 
     }
 
+    bool isFull(){
+        return (findDummyIndex() == -1); 
+    }
 
     void encryptBucket(unsigned char* key){
         for(int i = 0; i < BUCKETSIZE; i++){
@@ -499,6 +517,17 @@ class Node{
         isLeaf = false;
         bucket = new Bucket(); // deleted with ~
 
+    }
+
+    void writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
+        for(int i = 0; i < BUCKETSIZE; i++){
+            if(bucket->blocks[i]->data == DUMMY){
+                delete bucket->blocks[i]; 
+                bucket->blocks[i] = b; 
+                return; 
+            }
+        }
+        return; 
     }
 
     void printNode(int index){ // print node info + bucket
@@ -685,7 +714,8 @@ class Client{
             }
         }
         string store = found->data; // store answer before encrypting it away!
-        evict(s, oldLeaf);
+        evict(s,randomLeafLeft()); // evicit a path on the left and right side
+        evict(s,randomLeafRight()); 
         return store; 
 
     }
@@ -717,44 +747,157 @@ class Client{
                 }
             }
         }
+        evict(s,randomLeafLeft()); // evicit a path on the left and right side
+        evict(s,randomLeafRight()); 
+    }
 
-        evict(s,position_map[uid]); 
+    int deepestLevelStash(int leaf){ // find the deepest level a block in the stash can be stored
+        int deepestLevel = -1; 
+        for(Block* i : stash){
+            int intersect = commonAncestor(leaf, i->leaf); 
+            int intersectLevel = getLevelOff1(intersect); 
+
+            if(intersectLevel > deepestLevel){
+                deepestLevel = intersectLevel; 
+            }
+        }
+        return deepestLevel; 
+    }
+
+    int deepestLevelNode(Node* n, int leaf){
+        int deepestLevel = -1; 
+
+        for(int i=0; i < BUCKETSIZE; i++){
+            int intersect = commonAncestor(n->bucket->blocks[i]->leaf, leaf);
+            int intersectLevel = getLevelOff1(intersect); 
+
+            if(intersectLevel > deepestLevel){
+                deepestLevel = intersectLevel; 
+            }
+        }
+
+        return deepestLevel; 
+    }
+
+    Block* getDeepestAtNode(Node* n, int leaf){
+
+        int deepestLevel = -1;
+        int deepestIndex = -1;  
+
+        for(int i=0; i < BUCKETSIZE; i++){
+            int intersect = commonAncestor(n->bucket->blocks[i]->leaf, leaf);
+            int intersectLevel = getLevelOff1(intersect); 
+
+            if(intersectLevel > deepestLevel){
+                deepestLevel = intersectLevel;
+                deepestIndex= i;  
+            }
+        }
+
+        Block* temp = n->bucket->blocks[deepestIndex]; 
+        n->bucket->blocks[deepestIndex] = new Block(); 
+        return temp; 
+
+
+    }
+
+    void prepareDeepest(int* deepest, Node** nodes, int leaf){
+
+        int src = -1; 
+        int goal = -1; 
+
+        if (!stash.empty()){
+            src = 0; 
+            goal = deepestLevelStash(leaf); 
+        }
+
+        for(int i = 1; i <= PATHSIZE; i++){
+            if (goal >= i){
+                deepest[i] = src; 
+            }
+
+            int l = deepestLevelNode(nodes[i],leaf); 
+
+            if (l > goal){
+                goal = l; 
+                src = i; 
+            }
+        }
+    }
+
+    void prepareTarget(int* target, Node** nodes, int leaf, int* deepest){
+        int src = -1; 
+        int dest = -1; 
+
+        for(int i = PATHSIZE; i > 0; i--){
+            if(i==src){
+                target[i] = dest;
+                dest = -1; 
+                src = -1; 
+            }
+
+            if(((dest == -1) && !(nodes[i]->bucket->isFull()) || (target[i] != -1)) && (deepest[i] != -1)){
+                src = deepest[i]; 
+                dest = i; 
+            }
+        }
     }
 
     void evict(Server* s, int leaf){
 
-        int path[PATHSIZE]; // deleted
-        getPath(leaf, path); // get the indexes of the path
-        
-        for(int n = PATHSIZE-1; n >= 0; n--){ // iterate fromn bottom of path to top 
-            
-            int nodeID = path[n]; // the nodeID of current node 
-            Node* nodey = new Node();
-            int fillable = 0; // last place a block was written
+        Block* dumdum = new Block(); 
 
-            int size = stash.size();
-            for(int i = 0; i < size; i++){ // look over stash 
+        int path[PATHSIZE]; 
+        getPath(leaf, path); 
+        //printArray(path); 
+        Node* nodes[PATHSIZE+1];
+        Node** nP = nodes; 
 
-                Block* curr = stashGetBack(); // remove block from stash 
-                int common = commonAncestor(curr->leaf, leaf); // find lowest node block can be put in 
+        for(int i = 0; i < PATHSIZE; i++){
+            nodes[i+1] = fetch(s, path[i]); // keep nodes[0] empty (stash level)
+        }
 
-                if(nodeID <= common){ // if block can be put in this node
-                    delete nodey->bucket->blocks[fillable];
-                    nodey->bucket->blocks[fillable] = curr; // add block to the bucket
-                    fillable++;
-                }
-                else{
-                    stashPutFront(curr); // if cant put filled, put bac
-                }
+        int deepest[PATHSIZE+1]; // deepest should also include spot for stash 
+        std::fill_n(deepest, (PATHSIZE+1), -1);
+        prepareDeepest(deepest,nP,leaf); 
+        //printArraySize(deepest, PATHSIZE+1); 
 
-                if(fillable == BUCKETSIZE){
-                    break; 
-                }
+        int target[PATHSIZE+1]; // target should also include spot for stash 
+        std::fill_n(target, (PATHSIZE+1), -1);
+        prepareTarget(target,nP,leaf, deepest); 
+       // printArraySize(target, PATHSIZE+1); 
+
+        Block* hold = dumdum; 
+        int dest = -1; 
+
+        for(int i = 0; i < PATHSIZE+1; i++){ // you could be storing a value at the leaf node (offset for this reason)
+            Block* towrite = dumdum; 
+
+            if((hold->data != DUMMY) && (i==dest)){
+                towrite = hold; 
+                hold = dumdum; 
+                dest = -1; 
             }
-            
-            delete s->tree->nodes[nodeID]; 
-            nodey->bucket->encryptBucket(key); 
-            s->tree->nodes[nodeID] = nodey;
+
+            if(target[i] != -1){
+                hold = getDeepestAtNode(nodes[i], leaf);
+                //hold->printBlock(); 
+                dest = target[i]; 
+            }
+
+            if(towrite->data !=DUMMY){
+                //towrite->printBlock(); 
+                nodes[i]->writeToBucket(towrite); 
+            }
+        }
+
+        delete dumdum;
+
+
+        for(int i = 0; i < PATHSIZE; i++){
+            int index = path[i]; 
+            Node* n = nodes[i+1]; // offset because of empty stash space
+            s->tree->nodes[index] = n; 
         }
     }
 
@@ -864,18 +1007,44 @@ void multipleTests(int iterations){
 
 }
 
+void customTree(Client* c1, Server* s){
+    s->tree->nodes[0]->bucket->blocks[0] = new Block(1,14,"a");
+    s->tree->nodes[0]->bucket->blocks[1] = new Block(2,12,"b");
+
+    s->tree->nodes[2]->bucket->blocks[0] =  new Block(3,13,"c");
+    s->tree->nodes[2]->bucket->blocks[1] = new Block(4,11,"d");
+
+    s->tree->nodes[5]->bucket->blocks[0] = new Block(5,11,"e");
+    s->tree->nodes[5]->bucket->blocks[1] = new Block(6,12,"f");
+
+    c1->position_map[1] = 14;
+    c1->position_map[2] = 12;
+
+    c1->position_map[3] = 13;
+    c1->position_map[4] = 11;
+
+    c1->position_map[5] = 11;
+    c1->position_map[6] = 12; 
+}
 
 int main(){
-    cout << "hello world\n" << endl;
+    cout << "hello world" << endl;
 
-    //ProfilerStart("PathORAM.prof"); //Start profiling section and save to file
-    multipleTests(1); 
-    //ProfilerStop(); //End profiling section
+    //multipleTests(1); 
 
-    // Client* c1 = new Client(); 
-    // Server* s = new Server();
+    Client* c1 = new Client(); 
+    Server* s = new Server();
 
-    // c1->initServer(s);  
+    c1->initServer(s);
+    customTree(c1, s);
+
+    c1->evict(s,11);    
+
+    c1->printClient();
+    s->printServer();
+
+    delete s; 
+    delete c1;
 
     // c1->write(s, 1,"Hello"); 
     // c1->write(s, 2,"Working"); 
@@ -920,12 +1089,6 @@ int main(){
     // string data = c1->read(s, 5); 
     // string good = c1->read(s, 6);
  
-    // c1->printClient();
-    // s->printServer();
-    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
+    //cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
-    // delete s; 
-    // delete c1;
-
-    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
 }   

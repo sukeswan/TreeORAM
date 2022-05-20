@@ -29,9 +29,9 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 262144; // size of tree
+const int N = 1048576; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 18; // Size of bucket is logN        *** MANUAL FILL ***
+const int BUCKETSIZE = 20; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
