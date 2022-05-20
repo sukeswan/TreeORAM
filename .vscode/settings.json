@@ -23,6 +23,7 @@
     "files.associations": {
         "*.dfy": "dafny",
         "iostream": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "new": "cpp"
     }
 }

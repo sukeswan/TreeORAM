@@ -519,7 +519,7 @@ class Node{
 
     }
 
-    void writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
+    void  writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
         for(int i = 0; i < BUCKETSIZE; i++){
             if(bucket->blocks[i]->data == DUMMY){
                 delete bucket->blocks[i]; 
@@ -551,7 +551,6 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            delete nodes[i]; 
             nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
@@ -801,6 +800,29 @@ class Client{
 
     }
 
+    Block* getDeepestAtStash(int leaf){
+
+        int deepestLevel = -1; 
+        Block* deepestBlock; 
+
+        for(int i = 0; i < stash.size(); i++){
+            
+            Block* maybe = stashGetBack(); 
+
+            int intersect = commonAncestor(leaf, maybe->leaf); 
+            int intersectLevel = getLevelOff1(intersect); 
+
+            if(intersectLevel > deepestLevel){
+                deepestLevel = intersectLevel;
+                deepestBlock = maybe;  
+            }
+            else{
+                stashPutFront(maybe); 
+            }
+        }
+        return deepestBlock; 
+    }
+
     void prepareDeepest(int* deepest, Node** nodes, int leaf){
 
         int src = -1; 
@@ -829,7 +851,7 @@ class Client{
         int src = -1; 
         int dest = -1; 
 
-        for(int i = PATHSIZE; i > 0; i--){
+        for(int i = PATHSIZE; i >0; i--){
             if(i==src){
                 target[i] = dest;
                 dest = -1; 
@@ -849,7 +871,6 @@ class Client{
 
         int path[PATHSIZE]; 
         getPath(leaf, path); 
-        //printArray(path); 
         Node* nodes[PATHSIZE+1];
         Node** nP = nodes; 
 
@@ -860,12 +881,10 @@ class Client{
         int deepest[PATHSIZE+1]; // deepest should also include spot for stash 
         std::fill_n(deepest, (PATHSIZE+1), -1);
         prepareDeepest(deepest,nP,leaf); 
-        //printArraySize(deepest, PATHSIZE+1); 
 
         int target[PATHSIZE+1]; // target should also include spot for stash 
         std::fill_n(target, (PATHSIZE+1), -1);
         prepareTarget(target,nP,leaf, deepest); 
-       // printArraySize(target, PATHSIZE+1); 
 
         Block* hold = dumdum; 
         int dest = -1; 
@@ -880,13 +899,16 @@ class Client{
             }
 
             if(target[i] != -1){
-                hold = getDeepestAtNode(nodes[i], leaf);
-                //hold->printBlock(); 
+                if(i == 0){
+                    hold = getDeepestAtStash(leaf); 
+                }
+                else{
+                    hold = getDeepestAtNode(nodes[i], leaf);
+                }
                 dest = target[i]; 
             }
 
             if(towrite->data !=DUMMY){
-                //towrite->printBlock(); 
                 nodes[i]->writeToBucket(towrite); 
             }
         }
@@ -897,8 +919,27 @@ class Client{
         for(int i = 0; i < PATHSIZE; i++){
             int index = path[i]; 
             Node* n = nodes[i+1]; // offset because of empty stash space
+            delete s->tree->nodes[index]; 
             s->tree->nodes[index] = n; 
         }
+    }
+
+    int findNodeID(Server* s, int uid){ // return the nodeID of where uid is being stored // FOR TESTING PURPOSES ONLY
+        int leaf = position_map[uid]; 
+        int path[PATHSIZE]; 
+        getPath(leaf, path); 
+
+        for(int i = 0; i < PATHSIZE; i++){
+            int nodeID = path[i]; 
+            Node* curr = s->tree->nodes[nodeID]; 
+
+            for(int b = 0; b < BUCKETSIZE; b++){
+                if(curr->bucket->blocks[b]->uid == uid){
+                    return nodeID; // return the nodeID
+                }
+            }
+        }
+        return -1; // uid not found on path
     }
 
     ~Client(){ //deallocate
@@ -1007,11 +1048,26 @@ void multipleTests(int iterations){
 
 }
 
-void customTree(Client* c1, Server* s){
+bool evictTest1(){ // return true if test case passes, false otherwise
+
+    Client* c1 = new Client(); 
+    Server* s = new Server();
+
+    c1->initServer(s);
+
+    delete s->tree->nodes[0]->bucket->blocks[0];
+    delete s->tree->nodes[0]->bucket->blocks[1];
+
+    delete s->tree->nodes[2]->bucket->blocks[1];
+    delete s->tree->nodes[2]->bucket->blocks[0];
+
+    delete s->tree->nodes[5]->bucket->blocks[0];
+    delete s->tree->nodes[5]->bucket->blocks[1];
+
     s->tree->nodes[0]->bucket->blocks[0] = new Block(1,14,"a");
     s->tree->nodes[0]->bucket->blocks[1] = new Block(2,12,"b");
 
-    s->tree->nodes[2]->bucket->blocks[0] =  new Block(3,13,"c");
+    s->tree->nodes[2]->bucket->blocks[0] = new Block(3,13,"c");
     s->tree->nodes[2]->bucket->blocks[1] = new Block(4,11,"d");
 
     s->tree->nodes[5]->bucket->blocks[0] = new Block(5,11,"e");
@@ -1025,6 +1081,74 @@ void customTree(Client* c1, Server* s){
 
     c1->position_map[5] = 11;
     c1->position_map[6] = 12; 
+
+    c1->evict(s,11); 
+
+    bool checkA = c1->findNodeID(s,1) == 0; 
+    bool checkB = c1->findNodeID(s,2) == 2; 
+    bool checkC = c1->findNodeID(s,3) == 2;
+
+    bool checkD = c1->findNodeID(s,4) == 11; 
+    bool checkE = c1->findNodeID(s,5) == 5; 
+    bool checkF = c1->findNodeID(s,6) == 5;
+
+    delete s; 
+    delete c1;
+
+    return (checkA || checkB || checkC || checkD || checkE || checkF); 
+
+}
+
+bool evictTest2(){ // return true if test case passes, false otherwise
+
+    Client* c1 = new Client();
+    Server* s = new Server();
+    c1->initServer(s);
+
+
+    delete s->tree->nodes[0]->bucket->blocks[0];
+    delete s->tree->nodes[0]->bucket->blocks[1];
+
+    delete s->tree->nodes[1]->bucket->blocks[1];
+    delete s->tree->nodes[1]->bucket->blocks[0];
+
+    delete s->tree->nodes[4]->bucket->blocks[0];
+    delete s->tree->nodes[4]->bucket->blocks[1];
+
+
+    s->tree->nodes[0]->bucket->blocks[0] = new Block(1,7,"a");
+    s->tree->nodes[0]->bucket->blocks[1] = new Block(2,8,"b");
+
+    s->tree->nodes[1]->bucket->blocks[0] = new Block(3,9,"c");
+    s->tree->nodes[1]->bucket->blocks[1] = new Block(4,9,"d");
+
+    s->tree->nodes[4]->bucket->blocks[0] = new Block(5,10,"e");
+    s->tree->nodes[4]->bucket->blocks[1] = new Block(6,10,"f");
+
+    c1->position_map[1] = 7;
+    c1->position_map[2] = 8;
+
+    c1->position_map[3] = 9;
+    c1->position_map[4] = 9;
+
+    c1->position_map[5] = 10;
+    c1->position_map[6] = 10; 
+
+    c1->evict(s,10); 
+
+    bool checkA = c1->findNodeID(s,1) == 1; 
+    bool checkB = c1->findNodeID(s,2) == 0; 
+    bool checkC = c1->findNodeID(s,3) == 4;
+
+    bool checkD = c1->findNodeID(s,4) == 1; 
+    bool checkE = c1->findNodeID(s,5) == 10; 
+    bool checkF = c1->findNodeID(s,6) == 4;
+
+    delete s; 
+    delete c1;
+
+    return (checkA || checkB || checkC || checkD || checkE || checkF); 
+
 }
 
 int main(){
@@ -1032,53 +1156,47 @@ int main(){
 
     //multipleTests(1); 
 
+    cout << evictTest1() << endl;
+    cout << evictTest2() << endl;
+
     Client* c1 = new Client(); 
     Server* s = new Server();
 
     c1->initServer(s);
-    customTree(c1, s);
 
-    c1->evict(s,11);    
+    c1->write(s, 1,"Hello"); 
+    c1->write(s, 2,"Working"); 
+    c1->write(s, 3,"yay!");
 
-    c1->printClient();
-    s->printServer();
+    c1->write(s, 4,"more"); 
+    c1->write(s, 5,"data"); 
+    c1->write(s, 6,"is good");
 
-    delete s; 
-    delete c1;
+    c1->write(s, 7,"triple"); 
+    c1->write(s, 8,"checking"); 
+    c1->write(s, 9,"this stuff");
 
-    // c1->write(s, 1,"Hello"); 
-    // c1->write(s, 2,"Working"); 
-    // c1->write(s, 3,"yay!");
+    c1->write(s, 10,"aaaa"); 
+    c1->write(s, 11,"bbb"); 
+    c1->write(s, 12,"cccc");
+    c1->write(s, 13,"dddd");
+    c1->write(s, 14,"eeeee");
+    c1->write(s, 15,"ffff");
+    c1->write(s, 16,"ggggg");
+    c1->write(s, 17,"hhhhhhh");
+    c1->write(s,18,"iiiii");
 
-    // c1->write(s, 4,"more"); 
-    // c1->write(s, 5,"data"); 
-    // c1->write(s, 6,"is good");
-
-    // c1->write(s, 7,"triple"); 
-    // c1->write(s, 8,"checking"); 
-    // c1->write(s, 9,"this stuff");
-
-    // c1->write(s, 10,"aaaa"); 
-    // c1->write(s, 11,"bbb"); 
-    // c1->write(s, 12,"cccc");
-    // c1->write(s, 13,"dddd");
-    // c1->write(s, 14,"eeeee");
-    // c1->write(s, 15,"ffff");
-    // c1->write(s, 16,"ggggg");
-    // c1->write(s, 17,"hhhhhhh");
-    // c1->write(s,18,"iiiii");
-
-    // c1->write(s, 19,"aaaa"); 
-    // c1->write(s, 20,"bbb"); 
-    // c1->write(s, 21,"cccc");
-    // c1->write(s, 22,"dddd");
-    // c1->write(s, 23,"eeeee");
-    // c1->write(s, 24,"ffff");
-    // c1->write(s, 25,"ggggg");
-    // c1->write(s, 26,"hhhhhhh");
-    // c1->write(s,27,"iiiii");
-    // c1->write(s, 28,"hhhhhhh");
-    // c1->write(s,29,"iiiii");
+    c1->write(s, 19,"aaaa"); 
+    c1->write(s, 20,"bbb"); 
+    c1->write(s, 21,"cccc");
+    c1->write(s, 22,"dddd");
+    c1->write(s, 23,"eeeee");
+    c1->write(s, 24,"ffff");
+    c1->write(s, 25,"ggggg");
+    c1->write(s, 26,"hhhhhhh");
+    c1->write(s,27,"iiiii");
+    c1->write(s, 28,"hhhhhhh");
+    c1->write(s,29,"iiiii");
 
     // string hello = c1->read(s, 1); 
 
@@ -1088,7 +1206,12 @@ int main(){
     // string more = c1->read(s, 4); 
     // string data = c1->read(s, 5); 
     // string good = c1->read(s, 6);
+
+    c1->printClient(); 
+    s->printServer(); 
  
     //cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
+    delete s; 
+    delete c1;
 }   
