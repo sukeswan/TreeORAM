@@ -521,10 +521,10 @@ class Node{
 
     void  writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
         for(int i = 0; i < BUCKETSIZE; i++){
-            if(bucket->blocks[i]->data == DUMMY){
+            if(bucket->blocks[i]->uid == -1){
                 delete bucket->blocks[i]; 
                 bucket->blocks[i] = b; 
-                return; 
+                break; 
             }
         }
         return; 
@@ -830,7 +830,7 @@ class Client{
 
         if (!stash.empty()){
             src = 0; 
-            goal = deepestLevelStash(leaf); 
+            goal = deepestLevelStash(leaf);
         }
 
         for(int i = 1; i <= PATHSIZE; i++){
@@ -863,6 +863,12 @@ class Client{
                 dest = i; 
             }
         }
+        int i = 0; // for stash
+        if(i==src){
+            target[i] = dest;
+            dest = -1; 
+            src = -1; 
+        }
     }
 
     void evict(Server* s, int leaf){
@@ -881,6 +887,7 @@ class Client{
         int deepest[PATHSIZE+1]; // deepest should also include spot for stash 
         std::fill_n(deepest, (PATHSIZE+1), -1);
         prepareDeepest(deepest,nP,leaf); 
+ 
 
         int target[PATHSIZE+1]; // target should also include spot for stash 
         std::fill_n(target, (PATHSIZE+1), -1);
@@ -909,6 +916,9 @@ class Client{
             }
 
             if(towrite->data !=DUMMY){
+                if ((towrite->uid) == 15){
+                    cout << "15 should be going to node: " << path[i-1] << endl;
+                }
                 nodes[i]->writeToBucket(towrite); 
             }
         }
@@ -951,8 +961,6 @@ class Client{
 
         stash.shrink_to_fit();
         stash.clear(); 
-
-
     }
 };
 
@@ -1124,7 +1132,7 @@ bool evictTest2(){ // return true if test case passes, false otherwise
 
     s->tree->nodes[4]->bucket->blocks[0] = new Block(5,10,"e");
     s->tree->nodes[4]->bucket->blocks[1] = new Block(6,10,"f");
-
+    
     c1->position_map[1] = 7;
     c1->position_map[2] = 8;
 
@@ -1151,13 +1159,78 @@ bool evictTest2(){ // return true if test case passes, false otherwise
 
 }
 
+bool evictTest3(){ // return true if test case passes, false otherwise
+
+    Client* c1 = new Client();
+    Server* s = new Server();
+    c1->initServer(s);
+
+    delete s->tree->nodes[0]->bucket->blocks[0];
+    delete s->tree->nodes[0]->bucket->blocks[1];
+
+    delete s->tree->nodes[1]->bucket->blocks[1];
+    delete s->tree->nodes[1]->bucket->blocks[0];
+
+    delete s->tree->nodes[4]->bucket->blocks[0];
+    delete s->tree->nodes[4]->bucket->blocks[1];
+
+    delete s->tree->nodes[9]->bucket->blocks[0];
+
+    Block* a  = new Block(1,10,"a"); 
+    c1->stashPutFront(a); 
+
+    s->tree->nodes[0]->bucket->blocks[0] = new Block(2,9,"b");
+    s->tree->nodes[0]->bucket->blocks[1] = new Block(3,10,"c");
+
+    s->tree->nodes[1]->bucket->blocks[0] = new Block(4,7,"d");
+    s->tree->nodes[1]->bucket->blocks[1] = new Block(5,8,"e");
+
+    s->tree->nodes[4]->bucket->blocks[0] = new Block(6,10,"f");
+    s->tree->nodes[4]->bucket->blocks[1] = new Block(7,9,"g");
+
+    s->tree->nodes[9]->bucket->blocks[0] = new Block(8,9,"h");
+
+    c1->position_map[1] = 10; 
+
+    c1->position_map[2] = 9;
+    c1->position_map[3] = 10;
+
+    c1->position_map[4] = 7;
+    c1->position_map[5] = 8;
+
+    c1->position_map[6] = 10;
+    c1->position_map[7] = 9; 
+
+    c1->position_map[8] = 9;
+
+    c1->evict(s,9); 
+
+    // c1->printClient();
+    // s->printServer(); 
+
+    bool checkA = c1->findNodeID(s,1) == 0; 
+    bool checkC = c1->findNodeID(s,3) == 0;
+
+    bool checkD = c1->findNodeID(s,4) == 1; 
+    bool checkE = c1->findNodeID(s,5) == 1; 
+
+    bool checkF = c1->findNodeID(s,6) == 4;
+    bool checkG = c1->findNodeID(s,7) == 4; 
+
+    bool checkB = c1->findNodeID(s,2) == 9; 
+    bool checkH = c1->findNodeID(s,8) == 9;
+
+    bool empty = c1->stash.empty(); 
+
+    delete s; 
+    delete c1;
+
+    return (checkA || checkB || checkC || checkD || checkE || checkF || checkG || checkH || empty); 
+
+}
+
 int main(){
     cout << "hello world" << endl;
-
-    //multipleTests(1); 
-
-    cout << evictTest1() << endl;
-    cout << evictTest2() << endl;
 
     Client* c1 = new Client(); 
     Server* s = new Server();
