@@ -28,7 +28,7 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 8; // size of tree
+const int N = 1024; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 4; // Size of bucket is set to 4
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
@@ -42,7 +42,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
+const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -713,8 +713,6 @@ class Client{
         found->leaf = newLeaf; 
         position_map[uid] = newLeaf;
 
-        cout << oldLeaf << " new LEAF for BLOCK " << uid << "is " << position_map[uid] << endl;
-
         evict(s,randomLeafLeft()); // evicit a path on the left and right side
         evict(s,randomLeafRight());
         return store; 
@@ -943,6 +941,7 @@ class Client{
             int index = path[i]; 
             Node* n = nodes[i+1]; // offset because of empty stash space
             delete s->tree->nodes[index]; 
+            n->bucket->encryptBucket(key); 
             s->tree->nodes[index] = n; 
         }
     }
@@ -1244,6 +1243,8 @@ bool evictTest3(){ // return true if test case passes, false otherwise
 
 int main(){
     cout << "hello world" << endl;
+
+    multipleTests(2); 
 
     Client* c1 = new Client(); 
     Server* s = new Server();
