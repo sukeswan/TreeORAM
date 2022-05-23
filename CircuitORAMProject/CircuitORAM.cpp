@@ -519,7 +519,7 @@ class Node{
 
     }
 
-    void  writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
+    void writeToBucket(Block* b){ // write a block to the first empty bucket availibe 
         for(int i = 0; i < BUCKETSIZE; i++){
             if(bucket->blocks[i]->uid == -1){
                 delete bucket->blocks[i]; 
@@ -670,7 +670,6 @@ class Client{
     void fillStash(Server* s, int leaf){
         int path[PATHSIZE]; // deleted
         getPath(leaf, path); // get the indexes of the path
-
         for(int i = 0; i < PATHSIZE; i++){
             Node* current = fetch(s, path[i]); 
             for(int z = 0; z < BUCKETSIZE; z++){
@@ -680,7 +679,6 @@ class Client{
             }
             delete current; 
         }
-
         deleteStashDummys();
     }
 
@@ -700,9 +698,6 @@ class Client{
     string read(Server* s, int uid){
 
         int oldLeaf = position_map[uid]; // create random new leaf for block
-        int newLeaf = randomLeaf();
-        position_map[uid] = newLeaf;
-
         fillStash(s,oldLeaf); 
         Block* found; 
 
@@ -713,8 +708,15 @@ class Client{
             }
         }
         string store = found->data; // store answer before encrypting it away!
+        
+        int newLeaf = randomLeaf();
+        found->leaf = newLeaf; 
+        position_map[uid] = newLeaf;
+
+        cout << oldLeaf << " new LEAF for BLOCK " << uid << "is " << position_map[uid] << endl;
+
         evict(s,randomLeafLeft()); // evicit a path on the left and right side
-        evict(s,randomLeafRight()); 
+        evict(s,randomLeafRight());
         return store; 
 
     }
@@ -729,6 +731,7 @@ class Client{
 
             Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
             stash.push_back(alpha);
+
         }
         else{ // uid is in tree so get it and update it
             
@@ -746,8 +749,12 @@ class Client{
                 }
             }
         }
-        evict(s,randomLeafLeft()); // evicit a path on the left and right side
-        evict(s,randomLeafRight()); 
+
+        int rleft = randomLeafLeft(); 
+        int rright = randomLeafRight();
+
+        evict(s,rleft); // evicit a path on the left and right side 
+        evict(s,rright); 
     }
 
     int deepestLevelStash(int leaf){ // find the deepest level a block in the stash can be stored
@@ -805,16 +812,25 @@ class Client{
         int deepestLevel = -1; 
         Block* deepestBlock; 
 
-        for(int i = 0; i < stash.size(); i++){
+        int stashSize = stash.size();
+        for(int i = 0; i < stashSize; i++){
             
             Block* maybe = stashGetBack(); 
-
+    
             int intersect = commonAncestor(leaf, maybe->leaf); 
             int intersectLevel = getLevelOff1(intersect); 
 
             if(intersectLevel > deepestLevel){
-                deepestLevel = intersectLevel;
-                deepestBlock = maybe;  
+                if(deepestLevel == -1){ // if this is the first block 
+                    deepestLevel = intersectLevel;
+                    deepestBlock = maybe;
+                }
+                else{ // you need to add deepestBlock back to the stash
+                    stashPutFront(deepestBlock); 
+                    deepestLevel = intersectLevel;
+                    deepestBlock = maybe;
+                }
+                  
             }
             else{
                 stashPutFront(maybe); 
@@ -916,9 +932,6 @@ class Client{
             }
 
             if(towrite->data !=DUMMY){
-                if ((towrite->uid) == 15){
-                    cout << "15 should be going to node: " << path[i-1] << endl;
-                }
                 nodes[i]->writeToBucket(towrite); 
             }
         }
@@ -1249,41 +1262,42 @@ int main(){
     c1->write(s, 8,"checking"); 
     c1->write(s, 9,"this stuff");
 
-    c1->write(s, 10,"aaaa"); 
-    c1->write(s, 11,"bbb"); 
-    c1->write(s, 12,"cccc");
-    c1->write(s, 13,"dddd");
-    c1->write(s, 14,"eeeee");
-    c1->write(s, 15,"ffff");
-    c1->write(s, 16,"ggggg");
-    c1->write(s, 17,"hhhhhhh");
-    c1->write(s,18,"iiiii");
+    c1->write(s, 10,"a"); 
+    c1->write(s, 11,"b"); 
+    c1->write(s, 12,"c"); 
+    c1->write(s, 13,"d"); 
+    c1->write(s, 14,"e");
+    c1->write(s, 15,"f"); 
+    c1->write(s, 16,"g"); 
+    c1->write(s, 17,"h");
+    c1->write(s,18,"i");
 
-    c1->write(s, 19,"aaaa"); 
-    c1->write(s, 20,"bbb"); 
-    c1->write(s, 21,"cccc");
-    c1->write(s, 22,"dddd");
-    c1->write(s, 23,"eeeee");
-    c1->write(s, 24,"ffff");
-    c1->write(s, 25,"ggggg");
-    c1->write(s, 26,"hhhhhhh");
-    c1->write(s,27,"iiiii");
-    c1->write(s, 28,"hhhhhhh");
-    c1->write(s,29,"iiiii");
+    c1->write(s, 19,"j"); 
+    c1->write(s, 20,"k"); 
 
-    // string hello = c1->read(s, 1); 
+    c1->write(s, 21,"l");
+    c1->write(s, 22,"m");
+    c1->write(s, 23,"n");
+    c1->write(s, 24,"o");
+    c1->write(s, 25,"p");
+    c1->write(s, 26,"q");
+    c1->write(s,27,"r");
+    c1->write(s, 28,"s");
+    c1->write(s,29,"t");
 
-    // string working = c1->read(s, 2); 
-    // string yay = c1->read(s, 3);
+    string hello = c1->read(s, 1); 
 
-    // string more = c1->read(s, 4); 
-    // string data = c1->read(s, 5); 
-    // string good = c1->read(s, 6);
+    string working = c1->read(s, 2); 
+    string yay = c1->read(s, 3);
+
+    string more = c1->read(s, 4); 
+    string data = c1->read(s, 5); 
+    string good = c1->read(s, 6);
 
     c1->printClient(); 
     s->printServer(); 
  
-    //cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
+    cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
     delete s; 
     delete c1;
