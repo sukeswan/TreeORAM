@@ -28,7 +28,7 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 1048576; // size of tree
+const int N = 8; // size of tree (pick a factor of 2)
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 4; // Size of bucket is set to 4
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
@@ -42,7 +42,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
+const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -672,8 +672,6 @@ class Client{
     string read(Server* s, int uid){
 
         int oldLeaf = position_map[uid]; // create random new leaf for block
-        int newLeaf = randomLeaf();
-        position_map[uid] = newLeaf;
 
         fillStash(s,oldLeaf); 
         Block* found; 
@@ -684,6 +682,11 @@ class Client{
                 break; 
             }
         }
+
+        int newLeaf = randomLeaf();
+        position_map[uid] = newLeaf;
+        found->leaf = newLeaf; 
+        
         string store = found->data; // store answer before encrypting it away!
         evict(s, oldLeaf);
         return store; 
@@ -868,64 +871,62 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world\n" << endl;
 
-    //ProfilerStart("PathORAM.prof"); //Start profiling section and save to file
-    multipleTests(1); 
-    //ProfilerStop(); //End profiling section
+    //multipleTests(1); 
 
-    // Client* c1 = new Client(); 
-    // Server* s = new Server();
+    Client* c1 = new Client(); 
+    Server* s = new Server();
 
-    // c1->initServer(s);  
+    c1->initServer(s);
 
-    // c1->write(s, 1,"Hello"); 
-    // c1->write(s, 2,"Working"); 
-    // c1->write(s, 3,"yay!");
+    c1->write(s, 1,"Hello"); 
+    c1->write(s, 2,"Working"); 
+    c1->write(s, 3,"yay!");
 
-    // c1->write(s, 4,"more"); 
-    // c1->write(s, 5,"data"); 
-    // c1->write(s, 6,"is good");
+    c1->write(s, 4,"more"); 
+    c1->write(s, 5,"data"); 
+    c1->write(s, 6,"is good");
 
-    // c1->write(s, 7,"triple"); 
-    // c1->write(s, 8,"checking"); 
-    // c1->write(s, 9,"this stuff");
+    c1->write(s, 7,"triple"); 
+    c1->write(s, 8,"checking"); 
+    c1->write(s, 9,"this stuff");
 
-    // c1->write(s, 10,"aaaa"); 
-    // c1->write(s, 11,"bbb"); 
-    // c1->write(s, 12,"cccc");
-    // c1->write(s, 13,"dddd");
-    // c1->write(s, 14,"eeeee");
-    // c1->write(s, 15,"ffff");
-    // c1->write(s, 16,"ggggg");
-    // c1->write(s, 17,"hhhhhhh");
-    // c1->write(s,18,"iiiii");
+    c1->write(s, 10,"a"); 
+    c1->write(s, 11,"b"); 
+    c1->write(s, 12,"c"); 
+    c1->write(s, 13,"d"); 
+    c1->write(s, 14,"e");
+    c1->write(s, 15,"f"); 
+    c1->write(s, 16,"g"); 
+    c1->write(s, 17,"h");
+    c1->write(s,18,"i");
 
-    // c1->write(s, 19,"aaaa"); 
-    // c1->write(s, 20,"bbb"); 
-    // c1->write(s, 21,"cccc");
-    // c1->write(s, 22,"dddd");
-    // c1->write(s, 23,"eeeee");
-    // c1->write(s, 24,"ffff");
-    // c1->write(s, 25,"ggggg");
-    // c1->write(s, 26,"hhhhhhh");
-    // c1->write(s,27,"iiiii");
-    // c1->write(s, 28,"hhhhhhh");
-    // c1->write(s,29,"iiiii");
+    c1->write(s, 19,"j"); 
+    c1->write(s, 20,"k"); 
 
-    // string hello = c1->read(s, 1); 
+    c1->write(s, 21,"l");
+    c1->write(s, 22,"m");
+    c1->write(s, 23,"n");
+    c1->write(s, 24,"o");
+    c1->write(s, 25,"p");
+    c1->write(s, 26,"q");
+    c1->write(s,27,"r");
+    c1->write(s, 28,"s");
+    c1->write(s,29,"t");
 
-    // string working = c1->read(s, 2); 
-    // string yay = c1->read(s, 3);
+    string hello = c1->read(s, 1); 
 
-    // string more = c1->read(s, 4); 
-    // string data = c1->read(s, 5); 
-    // string good = c1->read(s, 6);
+    string working = c1->read(s, 2); 
+    string yay = c1->read(s, 3);
+
+    string more = c1->read(s, 4); 
+    string data = c1->read(s, 5); 
+    string good = c1->read(s, 6);
+
+    c1->printClient(); 
+    s->printServer(); 
  
-    // c1->printClient();
-    // s->printServer();
-    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
+    cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
-    // delete s; 
-    // delete c1;
-
-    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
+    delete s; 
+    delete c1;
 }   

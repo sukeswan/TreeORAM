@@ -10,7 +10,7 @@
 main:
 	clear
 	g++ -std=c++17 -lcrypto  PathORAM.cpp -o PathORAM 
-	./PathORAM > ./Latency\ Results/2^20.txt
+	./PathORAM > testing.txt
 
 # test: 
 # 	clear
