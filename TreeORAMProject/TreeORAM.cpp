@@ -29,9 +29,9 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 1048576; // size of tree
+const int N = 8; // size of tree
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 20; // Size of bucket is logN        *** MANUAL FILL ***
+const int BUCKETSIZE = 3; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
@@ -43,7 +43,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
+const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -456,13 +456,17 @@ class Bucket{
 
     void writeToBucket(int uid, int leaf, string data){
 
+        bool worked = false; 
+
         for(int i = 0; i < BUCKETSIZE; i++){
             if (blocks[i]->uid == -1){
                 delete blocks[i];
                 blocks[i] = new Block(uid,leaf,data); // will delete when ~ called
+                worked = true; 
                 break; 
             }
         }
+        cout << "writeToBucket " << worked << endl;
     }
 
     void printBucket(){ // print bucket + blocks 
@@ -526,7 +530,6 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            delete nodes[i]; 
             nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
@@ -727,12 +730,11 @@ class Client{
     string read(Server* s, int uid){
 
         int oldLeaf = position_map[uid]; // create random new leaf for block
+        string data = readAndRemoveParallel(s,uid,oldLeaf); 
+        Node* root = fetch(s, 0); // fetch node and write back to it 
+
         int newLeaf = randomLeaf();
         position_map[uid] = newLeaf;
-
-        string data = readAndRemoveParallel(s,uid,oldLeaf); 
-
-        Node* root = fetch(s, 0); // fetch node and write back to it 
 
         if (data.compare(DUMMY) != 0){ // if block is not dummy, write it to tree
             root->bucket->writeToBucket(uid,newLeaf,data);  
@@ -741,7 +743,6 @@ class Client{
         root->bucket->encryptBucket(key);
         delete s->tree->nodes[0]; 
         s->tree->nodes[0] = root; 
-
         evict(s);
 
         return data; 
@@ -775,7 +776,7 @@ class Client{
         int numOfEvictions = 2*PATHSIZE-3;
         int evicting[numOfEvictions]; // number of blocks to evict *deleted*
         blocksToEvict(evicting); 
-        
+
         for(int i = 0; i < numOfEvictions; i++){
                 
             int evictingIndex = evicting[i];
@@ -946,46 +947,42 @@ void multipleTests(int iterations){
 }
 
 int main(){
-    cout << "hello world\n" << endl;
 
-    //ProfilerStart("TreeORAM.prof"); //Start profiling section and save to file
-    multipleTests(1); 
-    //ProfilerStop(); //End profiling section
+    //multipleTests(1); 
 
-    // Client* c1 = new Client(); 
-    // Server* s = new Server();
+    cout << "hello world" << endl;
 
-    // c1->initServer(s);  
+    Client* c1 = new Client(); 
+    Server* s = new Server();
 
-    // c1->write(s, 3,"Hello"); 
-    // c1->write(s, 8,"Working"); 
-    // c1->write(s, 1000,"yay!");
+    c1->initServer(s);
 
-    // c1->write(s, 2,"more"); 
-    // c1->write(s, 9,"data"); 
-    // c1->write(s, 11,"is good");
-    
-    // c1->printClient(); 
-    // s->printServer();
+    // c1->write(s, 1,"Hello"); 
+    // c1->write(s, 2,"Working"); 
+    // c1->write(s, 3,"yay!");
 
-    // string hello = c1->read(s,3); 
-    // string working = c1->read(s,8);
-    // string yay = c1->read(s,1000); 
+    // c1->write(s, 4,"more"); 
+    // c1->write(s, 5,"data"); 
+    // c1->write(s, 6,"is good");
 
-    // string more = c1->read(s,2); 
-    // string data = c1->read(s,9);
-    // string good = c1->read(s,11); 
+    // c1->write(s, 7,"triple"); 
+
+    // string hello = c1->read(s, 1); 
+
+    // string working = c1->read(s, 2); 
+    // string yay = c1->read(s, 3);
+
+    // string more = c1->read(s, 4); 
+    // string data = c1->read(s, 5); 
+    // string good = c1->read(s, 6);
 
     // c1->printClient(); 
     // s->printServer(); 
+ 
+    // //cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
-    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl; 
-
-    // delete c1; 
-    // delete s; 
-
-    //fscanf(stdin, "c"); // wait for user to enter input from keyboard
-    //cout << uhoh << endl; 
+    delete s; 
+    delete c1;
 
 }   
 
