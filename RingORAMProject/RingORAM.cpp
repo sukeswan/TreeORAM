@@ -8,6 +8,9 @@
 #include <cstring>
 #include <bitset>
 #include <chrono>
+#include <algorithm>
+#include <random>
+#include <array>
 
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -46,7 +49,7 @@ const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
 const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
+const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
@@ -303,7 +306,7 @@ class Block{
 
     }
 
-    Block(int uidP, int leafP, string dataP){ //plaintext constructor  for non dummy blocks
+    Block(int uidP, int leafP, string dataP){ //plaintext constructor for non dummy blocks
         uid = uidP;
         leaf = leafP; 
         data = dataP;
@@ -491,23 +494,49 @@ class Node{
 
         Bucket* bucket;
         bool isLeaf; // keep track of leafs 
+        int count; // number of times node has been accesed since reshuffle 
 
-    Node(int index){ // pas index of node
+    Node(int index){ // pass index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
         bucket = new Bucket(); // deleted with ~
+        count = 0; 
     }
 
     Node(){ // dummy node for when removing things from server 
 
         isLeaf = false;
         bucket = new Bucket(); // deleted with ~
+        count = 0; 
+
+    }
+
+    void shuffle(){
+        count = 0; // reset the count
+
+        array<int, BUCKETSIZE> order;
+        Block* copy[BUCKETSIZE];  
+
+        for(int i =0; i < BUCKETSIZE; i++){
+            order[i] = i; 
+            copy[i] = bucket->blocks[i]; 
+        }
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(order.begin(), order.end(), g);
+
+        //random_shuffle(std::begin(order), std::end(order));
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+            bucket->blocks[i] = copy[order[i]]; 
+        }
 
     }
 
     void printNode(int index){ // print node info + bucket
 
-        cout << "\n --- NODE " << index << " --- " << endl; 
+        cout << "\n --- NODE " << index << " accessed " << count << " times --- " << endl; 
         cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl; 
         bucket->printBucket();
         
@@ -526,7 +555,7 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            delete nodes[i]; 
+            //delete nodes[i]; 
             nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
@@ -579,7 +608,7 @@ class Client{
         int accesses; // number of times an access has occured
         int evictingPath; 
 
-    Client(){ // constructor for Node
+    Client(){ // constructor for Client
         position_map.clear(); 
         generateKey(key);
         accesses = 0; 
@@ -591,9 +620,7 @@ class Client{
 
         for(int i =0; i < numNodes; i++){
             Node* n = new Node(); // deleted with ~
-            n->bucket->encryptBucket(key);
-            delete s->tree->nodes[i]; 
-            s->tree->nodes[i] = n;  
+            storeNode(s,n,i);
         }
 
     }
@@ -615,14 +642,35 @@ class Client{
         cout << " --------------------------" << endl;
     }
 
+    void storeNode(Server* s, Node* n, int index){
+        n->count = s->tree->nodes[index]->count; 
+        n->bucket->encryptBucket(key); 
+        delete s->tree->nodes[index]; 
+        s->tree->nodes[index] = n; 
+    }
+
+    void storeBlock(Server* s, Block* b, int nodeID, int offset){
+        b->easy_encrypt(key);
+        delete s->tree->nodes[nodeID]->bucket->blocks[offset];
+        s->tree->nodes[nodeID]->bucket->blocks[offset] = b;  
+    }
+
     Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
 
         Node* dummy = new Node();
         dummy->bucket->encryptBucket(key);
 
         Node* wanted  = s->tree->nodes[nid]; 
+        wanted->count = wanted->count + 1; // node access increment
         wanted->bucket->decryptBucket(key);
 
+
+        if(wanted->count == S){ // shuffle the blocks in the node
+            wanted->shuffle();
+        }
+
+        
+        dummy->count = wanted->count; 
         s->tree->nodes[nid] = dummy; // deleted with ~
         return wanted; 
 
@@ -777,9 +825,7 @@ class Client{
                 }
             }
             
-            delete s->tree->nodes[nodeID]; 
-            nodey->bucket->encryptBucket(key); 
-            s->tree->nodes[nodeID] = nodey;
+            storeNode(s, nodey, nodeID); 
         }
 
         evictingPath -=1; // evictingPath should be next path to the left

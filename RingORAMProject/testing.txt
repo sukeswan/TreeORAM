@@ -42,199 +42,199 @@ hello world
 
  --- TREE of size 15 --- 
 
- --- NODE 0 --- 
+ --- NODE 0 accessed 1 times --- 
 Left Index: 1 Right Index: 2 Parent Index: -1
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - e2 2c 63 9c 47 4c bb ad-d5 5f 17 98 eb 63 7a 98   .,c.GL..._...cz.
-Ciphertext for Encrypted Block: 0000 - 36 bd 60 d5 e5 fe 58 99-74 9c cf 4d af 87 5b 87   6.`...X.t..M..[.
-Ciphertext for Encrypted Block: 0000 - ea 4a 7f 24 5f 2f 2b df-c9 94 c4 3e a8 52 6d 1f   .J.$_/+....>.Rm.
-Ciphertext for Encrypted Block: 0000 - 51 84 46 d0 21 e1 75 43-4b 0e d3 a8 7e 3b 4d 55   Q.F.!.uCK...~;MU
-Ciphertext for Encrypted Block: 0000 - 0d 36 95 6e f6 b9 6d a7-5b 30 25 26 7a f9 1b f4   .6.n..m.[0%&z...
-Ciphertext for Encrypted Block: 0000 - a5 8b c9 f3 60 bd b0 31-0a 28 2e 5b 57 86 6e 9e   ....`..1.(.[W.n.
-Ciphertext for Encrypted Block: 0000 - 06 c3 ed 97 00 0c 9c e5-18 72 f1 95 2b aa 0f 12   .........r..+...
+BLOCK ID: 18 LEAF: 8 DATA: i
+BLOCK ID: 31 LEAF: 8 DATA: v
+BLOCK ID: 22 LEAF: 8 DATA: m
+BLOCK ID: 6 LEAF: 12 DATA: is good
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 1 --- 
+ --- NODE 1 accessed 2 times --- 
 Left Index: 3 Right Index: 4 Parent Index: 0
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 0a a2 f6 67 a9 03 3a db-ba 6c 28 14 5e bf fc 8c   ...g..:..l(.^...
-Ciphertext for Encrypted Block: 0000 - c9 01 2f 93 fd 04 79 dc-fd fd 72 53 18 17 f6 02   ../...y...rS....
-Ciphertext for Encrypted Block: 0000 - 2b 7b b7 14 fe 0f da b7-f1 d0 06 99 e4 24 84 08   +{...........$..
-Ciphertext for Encrypted Block: 0000 - a5 a4 1d 83 7b e9 d3 71-bf d5 d8 0f d5 70 93 0e   ....{..q.....p..
-Ciphertext for Encrypted Block: 0000 - ee 52 b0 bf 88 de 85 96-a0 1e 01 7a cf 89 69 47   .R.........z..iG
-Ciphertext for Encrypted Block: 0000 - e5 8f 4b 2f 96 fc 19 89-2f 0e 1d 46 bf 72 ab 1d   ..K/..../..F.r..
-Ciphertext for Encrypted Block: 0000 - 55 ac 30 b2 ec 43 93 7f-45 ef f1 32 82 7e 0b b2   U.0..C..E..2.~..
+BLOCK ID: 11 LEAF: 7 DATA: b
+BLOCK ID: 25 LEAF: 7 DATA: p
+BLOCK ID: 29 LEAF: 7 DATA: t
+BLOCK ID: 7 LEAF: 7 DATA: triple
+BLOCK ID: 19 LEAF: 7 DATA: j
+BLOCK ID: 1 LEAF: 7 DATA: Hello
+BLOCK ID: 4 LEAF: 8 DATA: more
 --------------------------
 
- --- NODE 2 --- 
+ --- NODE 2 accessed 2 times --- 
 Left Index: 5 Right Index: 6 Parent Index: 0
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 94 a4 db 3a 06 86 32 01-30 9f c7 47 f8 3a e8 db   ...:..2.0..G.:..
-Ciphertext for Encrypted Block: 0000 - 4a 87 2a 4a 0a a9 d7 1a-25 95 ca 6a 97 b9 f1 04   J.*J....%..j....
-Ciphertext for Encrypted Block: 0000 - 60 e7 e7 60 11 f7 c7 0a-07 a8 c9 05 d4 45 4e 3d   `..`.........EN=
-Ciphertext for Encrypted Block: 0000 - 2b 77 69 12 c4 72 bf 9a-56 7e 3c 91 f0 77 bf 22   +wi..r..V~<..w."
-Ciphertext for Encrypted Block: 0000 - 9c c3 35 e1 91 95 b6 89-e5 5d 7a 00 81 4b bb 03   ..5......]z..K..
-Ciphertext for Encrypted Block: 0000 - f1 68 4e 53 6c 9a 38 19-dc a7 0b 13 87 46 d6 9e   .hNSl.8......F..
-Ciphertext for Encrypted Block: 0000 - c3 f4 08 de ad 2b b5 64-a3 b9 58 4e 6a 22 ac 0e   .....+.d..XNj"..
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 3 --- 
+ --- NODE 3 accessed 1 times --- 
 Left Index: 7 Right Index: 8 Parent Index: 1
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - dd 7e 77 ab e2 09 df f7-a6 ad ee dc a1 39 3b 55   .~w..........9;U
-Ciphertext for Encrypted Block: 0000 - ed 64 68 9a 02 81 39 65-40 60 35 b6 18 bd fd a2   .dh...9e@`5.....
-Ciphertext for Encrypted Block: 0000 - 85 37 8c cc da 1f b8 01-0e e3 81 04 bb 29 0a 8c   .7...........)..
-Ciphertext for Encrypted Block: 0000 - 90 7e 59 62 2b d4 77 86-f9 75 69 ab dd 8f 9a 45   .~Yb+.w..ui....E
-Ciphertext for Encrypted Block: 0000 - 9b dc e5 23 10 6c 0e ec-3e ff d9 49 df 83 ef 98   ...#.l..>..I....
-Ciphertext for Encrypted Block: 0000 - 1b 11 09 51 85 29 97 ac-ea 52 fc ca 50 a7 a1 9d   ...Q.)...R..P...
-Ciphertext for Encrypted Block: 0000 - 9a fb b2 b5 fe 5d 5d 87-01 8b 30 3a eb 27 a3 ae   .....]]...0:.'..
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 4 --- 
+ --- NODE 4 accessed 1 times --- 
 Left Index: 9 Right Index: 10 Parent Index: 1
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - e7 12 9e 33 9c 9b 74 87-71 04 8d d8 24 b7 e1 1c   ...3..t.q...$...
-Ciphertext for Encrypted Block: 0000 - 3d c3 b7 df 1f 2e 40 e1-2b a3 c9 e3 dc 7e 3b 42   =.....@.+....~;B
-Ciphertext for Encrypted Block: 0000 - 10 41 38 54 e3 84 7a d6-e4 85 2f 18 19 e2 69 58   .A8T..z.../...iX
-Ciphertext for Encrypted Block: 0000 - 16 af dd e8 0c 78 2d c9-2d 84 b7 4b 25 e7 b2 b6   .....x-.-..K%...
-Ciphertext for Encrypted Block: 0000 - 5a a2 f7 49 e3 72 82 c6-32 f9 12 3e b3 db 76 69   Z..I.r..2..>..vi
-Ciphertext for Encrypted Block: 0000 - c6 c3 73 d3 c7 65 57 28-34 59 68 91 d7 63 c0 5b   ..s..eW(4Yh..c.[
-Ciphertext for Encrypted Block: 0000 - b1 de 96 83 bf bf 94 ff-ec f0 fe 49 9a c7 28 b9   ...........I..(.
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 5 --- 
+ --- NODE 5 accessed 2 times --- 
 Left Index: 11 Right Index: 12 Parent Index: 2
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 99 ba 66 98 4f 91 ab 6f-48 d0 ec 8c 78 16 ed 7a   ..f.O..oH...x..z
-Ciphertext for Encrypted Block: 0000 - ee 55 63 29 3d e0 f5 e6-ac d1 b5 e0 dd 97 15 90   .Uc)=...........
-Ciphertext for Encrypted Block: 0000 - df cb 0e 11 bd 47 95 b9-fc 88 40 80 46 61 c0 48   .....G....@.Fa.H
-Ciphertext for Encrypted Block: 0000 - 94 b6 82 d9 f8 bd 01 27-d1 bf 41 d9 2e 2c cd e8   .......'..A..,..
-Ciphertext for Encrypted Block: 0000 - b0 79 7d da e3 40 e7 ba-03 2a 93 89 e1 2d f7 be   .y}..@...*...-..
-Ciphertext for Encrypted Block: 0000 - 70 74 a0 d7 f8 5a 30 71-ab a3 cd 58 5e 72 3a 1d   pt...Z0q...X^r:.
-Ciphertext for Encrypted Block: 0000 - b1 f0 06 0c 76 21 56 00-b6 69 0b 07 27 93 07 92   ....v!V..i..'...
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 6 --- 
+ --- NODE 6 accessed 0 times --- 
 Left Index: 13 Right Index: 14 Parent Index: 2
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 76 ab b5 33 84 e1 e6 ce-7c 79 31 52 06 d2 f1 3d   v..3....|y1R...=
-Ciphertext for Encrypted Block: 0000 - 24 c7 0d 5a 59 1a f8 01-ec b1 6e eb f1 eb 48 b4   $..ZY.....n...H.
-Ciphertext for Encrypted Block: 0000 - d4 a8 c7 dd 11 59 65 04-e0 07 ad 04 85 1b c0 50   .....Ye........P
-Ciphertext for Encrypted Block: 0000 - ce b6 71 f4 1f e0 6f ef-53 29 8a 9e e7 33 16 70   ..q...o.S)...3.p
-Ciphertext for Encrypted Block: 0000 - bc 00 41 5f b8 d3 01 9d-71 97 39 cf d0 36 81 0f   ..A_....q.9..6..
-Ciphertext for Encrypted Block: 0000 - 7e 60 70 c0 cc 36 1d cc-fd 51 03 81 b5 10 9f d4   ~`p..6...Q......
-Ciphertext for Encrypted Block: 0000 - 44 5d 2a a4 c2 82 36 80-10 f7 90 92 e2 ad 24 b5   D]*...6.......$.
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 7 --- 
+ --- NODE 7 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - c8 b7 1e 80 fc 99 8e fd-14 32 d8 8e 04 41 b3 d5   .........2...A..
-Ciphertext for Encrypted Block: 0000 - 57 7c 27 75 81 23 5a 2d-e7 bb ce 71 da 21 08 b7   W|'u.#Z-...q.!..
-Ciphertext for Encrypted Block: 0000 - 19 33 08 6f ea e8 b0 16-78 84 41 92 b9 aa d3 bb   .3.o....x.A.....
-Ciphertext for Encrypted Block: 0000 - c0 02 eb a0 7f 8e b3 5a-63 a1 24 b7 b9 48 2d 91   .......Zc.$..H-.
-Ciphertext for Encrypted Block: 0000 - b0 84 dc 21 62 3a 82 a0-f7 4f 08 14 98 af f9 da   ...!b:...O......
-Ciphertext for Encrypted Block: 0000 - 70 0f fc 8d c2 54 11 9e-92 0e 6a 5b ad 8b df fc   p....T....j[....
-Ciphertext for Encrypted Block: 0000 - 57 e8 ff 37 f1 63 79 00-fe e9 21 7e f5 84 77 b9   W..7.cy...!~..w.
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 8 --- 
+ --- NODE 8 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 59 c8 47 fc 31 6d 86 5e-08 0c 9c cf 46 b1 f6 83   Y.G.1m.^....F...
-Ciphertext for Encrypted Block: 0000 - a3 1a a1 69 fa bc 02 53-29 bc 6f 7d 3d 33 8a 24   ...i...S).o}=3.$
-Ciphertext for Encrypted Block: 0000 - bb 29 34 b7 84 e9 ad 6b-a2 20 fd de 8c fb db 7b   .)4....k. .....{
-Ciphertext for Encrypted Block: 0000 - 1f 47 f1 cf b4 be c4 a1-66 1c b2 fc 97 aa 8d 65   .G......f......e
-Ciphertext for Encrypted Block: 0000 - 8b a5 59 9f 63 6f 82 54-58 cf dc 48 ef d6 0b ae   ..Y.co.TX..H....
-Ciphertext for Encrypted Block: 0000 - 3c 24 cc f8 71 2b 81 4e-9d 3a 15 92 62 85 90 ae   <$..q+.N.:..b...
-Ciphertext for Encrypted Block: 0000 - 26 02 61 6e 24 33 9f 94-a3 78 02 ec 0a 92 8c 14   &.an$3...x......
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 9 --- 
+ --- NODE 9 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 63 fc 65 8a 98 66 81 c2-82 2e 97 87 5d 12 9c 87   c.e..f......]...
-Ciphertext for Encrypted Block: 0000 - b6 65 da 95 f2 4e 49 77-3b 97 1c d4 23 79 d9 00   .e...NIw;...#y..
-Ciphertext for Encrypted Block: 0000 - 20 57 93 f5 f9 94 ee 93-84 a9 39 07 1c 47 cd 57    W........9..G.W
-Ciphertext for Encrypted Block: 0000 - e8 7f 43 8d 0a 15 51 c1-bc 8e de e3 09 86 a1 ed   ..C...Q.........
-Ciphertext for Encrypted Block: 0000 - e2 d0 07 01 d7 b3 c7 11-5a 01 6e 2c 0a 03 10 5e   ........Z.n,...^
-Ciphertext for Encrypted Block: 0000 - f5 da ac 83 a7 a7 e1 7f-16 cc 2f ac 52 a7 e5 3e   ........../.R..>
-Ciphertext for Encrypted Block: 0000 - b8 f3 39 90 a3 7b 35 42-04 1b 85 ff fb 8c 6f 0b   ..9..{5B......o.
+BLOCK ID: 32 LEAF: 9 DATA: w
+BLOCK ID: 14 LEAF: 9 DATA: e
+BLOCK ID: 3 LEAF: 9 DATA: yay!
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 10 --- 
+ --- NODE 10 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 1b ce 4a 4b eb 65 0d c9-d3 84 d3 26 b6 98 54 4a   ..JK.e.....&..TJ
-Ciphertext for Encrypted Block: 0000 - ed 31 08 e3 71 5f ad 6f-25 21 ee 03 91 ae a5 24   .1..q_.o%!.....$
-Ciphertext for Encrypted Block: 0000 - 3a cf 0b 75 c8 9b 95 c7-58 c9 19 d1 04 db c2 ee   :..u....X.......
-Ciphertext for Encrypted Block: 0000 - f3 ae ad b4 3a 03 be db-d7 34 89 77 41 ed 3a c2   ....:....4.wA.:.
-Ciphertext for Encrypted Block: 0000 - c8 6b 18 ef 91 e9 3c f7-d3 40 00 8a 82 b0 ea c6   .k....<..@......
-Ciphertext for Encrypted Block: 0000 - c1 32 68 3a 43 29 88 fa-7a ff b3 10 fd 11 4e b7   .2h:C)..z.....N.
-Ciphertext for Encrypted Block: 0000 - a7 4b 4d 47 4b 5c b7 34-d9 e2 e1 75 84 7d 35 fc   .KMGK\.4...u.}5.
+BLOCK ID: 27 LEAF: 10 DATA: r
+BLOCK ID: 9 LEAF: 10 DATA: this stuff
+BLOCK ID: 15 LEAF: 10 DATA: f
+BLOCK ID: 2 LEAF: 10 DATA: Working
+BLOCK ID: 5 LEAF: 10 DATA: data
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 11 --- 
+ --- NODE 11 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 91 8d ec 5f c2 31 dc ea-eb d4 16 aa fb 97 2d 93   ..._.1........-.
-Ciphertext for Encrypted Block: 0000 - e8 85 a7 ac ae ab eb d4-0a c8 00 04 a9 1a 99 f9   ................
-Ciphertext for Encrypted Block: 0000 - c1 8c 71 e3 4f df 84 a0-3a cb 9d ae ad 54 96 b0   ..q.O...:....T..
-Ciphertext for Encrypted Block: 0000 - 9c dc d3 94 9e b7 d5 cc-18 41 21 a1 53 ba f7 42   .........A!.S..B
-Ciphertext for Encrypted Block: 0000 - 9d 32 45 33 08 42 46 20-c6 97 bd 98 5f 16 87 eb   .2E3.BF ...._...
-Ciphertext for Encrypted Block: 0000 - bb 50 a9 40 4a db b2 cc-3d e5 43 d6 36 dc 54 41   .P.@J...=.C.6.TA
-Ciphertext for Encrypted Block: 0000 - 8a 6b c8 a2 bd 58 af 07-e4 80 b1 17 43 61 b1 bb   .k...X......Ca..
+BLOCK ID: 13 LEAF: 11 DATA: d
+BLOCK ID: 20 LEAF: 11 DATA: k
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 12 --- 
+ --- NODE 12 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 90 6b ba 3f be 80 1a b5-ad 6d ac 90 1f 36 88 c4   .k.?.....m...6..
-Ciphertext for Encrypted Block: 0000 - 49 db ca 6e 08 5c 63 ed-30 ad b3 b1 4d 2d 18 8e   I..n.\c.0...M-..
-Ciphertext for Encrypted Block: 0000 - 70 04 3d 3a 18 e7 c0 06-90 98 d0 f5 c2 af 94 9b   p.=:............
-Ciphertext for Encrypted Block: 0000 - 65 93 24 36 61 c8 11 25-26 91 32 09 58 fc 3c 35   e.$6a..%&.2.X.<5
-Ciphertext for Encrypted Block: 0000 - 4b 38 91 a6 1b db b6 44-0f d0 35 4d ab 5c 89 75   K8.....D..5M.\.u
-Ciphertext for Encrypted Block: 0000 - 18 ba ed 1f f3 eb 38 cd-a4 77 77 41 22 c5 a9 7b   ......8..wwA"..{
-Ciphertext for Encrypted Block: 0000 - c4 02 93 64 49 f9 60 2c-d3 46 bc 94 15 92 03 9d   ...dI.`,.F......
+BLOCK ID: 23 LEAF: 12 DATA: n
+BLOCK ID: 10 LEAF: 12 DATA: a
+BLOCK ID: 12 LEAF: 12 DATA: c
+BLOCK ID: 24 LEAF: 12 DATA: o
+BLOCK ID: 26 LEAF: 12 DATA: q
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 13 --- 
+ --- NODE 13 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - f1 68 62 6f 01 1a 03 42-65 c5 35 f8 16 dd 24 fb   .hbo...Be.5...$.
-Ciphertext for Encrypted Block: 0000 - c6 ee 94 ff 6b ff 73 ce-8e d6 a1 47 72 98 83 61   ....k.s....Gr..a
-Ciphertext for Encrypted Block: 0000 - 1c 67 18 34 8a c7 46 41-83 b7 83 3f 4d 5c 2c 41   .g.4..FA...?M\,A
-Ciphertext for Encrypted Block: 0000 - 44 2b 6d d1 a2 f8 a2 a9-78 62 5b 48 94 e2 d1 a9   D+m.....xb[H....
-Ciphertext for Encrypted Block: 0000 - c4 1f af 11 33 13 54 e4-3c ee ac ed 18 a5 1a 45   ....3.T.<......E
-Ciphertext for Encrypted Block: 0000 - cd e3 4e 05 f2 21 c3 c9-00 e1 31 a4 28 2d fa d9   ..N..!....1.(-..
-Ciphertext for Encrypted Block: 0000 - 31 e0 a4 12 66 c1 25 c7-42 b3 c0 50 b8 ef 4e b2   1...f.%.B..P..N.
+BLOCK ID: 8 LEAF: 13 DATA: checking
+BLOCK ID: 28 LEAF: 13 DATA: s
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 14 --- 
+ --- NODE 14 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
 
 --- BUCKET w/ size 7 --- 
-Ciphertext for Encrypted Block: 0000 - 9f 47 31 83 16 ca 3a c1-c9 e8 44 d8 1e 3f 54 75   .G1...:...D..?Tu
-Ciphertext for Encrypted Block: 0000 - 89 fe c7 d5 da f6 d5 b5-a5 a9 26 61 95 12 12 c7   ..........&a....
-Ciphertext for Encrypted Block: 0000 - ae 58 8b 80 fb 49 20 e5-b0 08 bc 67 27 3f 8a af   .X...I ....g'?..
-Ciphertext for Encrypted Block: 0000 - 54 a2 7a 25 14 28 7e 23-20 26 4f be 57 92 d2 37   T.z%.(~# &O.W..7
-Ciphertext for Encrypted Block: 0000 - bb e6 2b 0a 40 5a 21 9c-cb e6 8e 4a 46 38 b1 11   ..+.@Z!....JF8..
-Ciphertext for Encrypted Block: 0000 - b4 73 44 9d 5b 79 e8 84-0f e6 04 85 5f 26 7c 5b   .sD.[y......_&|[
-Ciphertext for Encrypted Block: 0000 - 24 f8 4d f7 56 a9 67 db-36 3c 13 89 ac 11 00 64   $.M.V.g.6<.....d
+BLOCK ID: 17 LEAF: 14 DATA: h
+BLOCK ID: 16 LEAF: 14 DATA: g
+BLOCK ID: 30 LEAF: 14 DATA: u
+BLOCK ID: 21 LEAF: 14 DATA: l
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
  ------ SERVER STATE END ------ 
 Hello Working yay! more data is good
