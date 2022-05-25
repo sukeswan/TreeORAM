@@ -33,7 +33,7 @@ class Client;
 
 const int N = 8; // size of tree (pick a factor of 2)
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 7; // Size of bucket is set to 4
+const int BUCKETSIZE = 7; // Size of bucket is set to 7
 const int Z = 4; // max number of real blocks per bucket
 const int S = 3; // max number of dummy blocks per bucket
 const int A = 1; // evict after every A accesses 
@@ -56,7 +56,13 @@ const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
 void printArray(int* a){
     cout << "["; 
     for(int i = 0; i < PATHSIZE; i++){
-        cout << a[i] << ", "; 
+
+        if(i == PATHSIZE -1){
+            cout << a[i];
+        }
+        else{
+            cout << a[i] << ", ";
+        } 
     }
     cout << "]" << endl; 
 }
@@ -64,9 +70,22 @@ void printArray(int* a){
 void printArraySize(int* a, int size){
     cout << "["; 
     for(int i = 0; i < size; i++){
-        cout << a[i] << ", "; 
+        if(i == size -1){
+            cout << a[i];
+        }
+        else{
+            cout << a[i] << ", ";
+        } 
     }
     cout << "]" << endl; 
+}
+
+void arrayCopy(int* src, int* dest, int size){
+
+    for(int i = 0; i < size; i++){
+        dest[i] = src[i]; 
+    }
+
 }
 
 int smallLeaf(){ // returns smallest leaf value
@@ -83,6 +102,10 @@ int randomLeaf(){ // TODO not crypto secure
 
 int randomRange(int small, int big){ // pick random value from range
     return small + rand() % ((big - small + 1));
+}
+
+int randomNegative(){
+    return -1*randomRange(1, 100 * N); 
 }
 
 void levelRange(int level, int range[]){ // get node index at level 
@@ -182,7 +205,6 @@ int commonAncestor(int leaf1, int leaf2){
 void generateKey(unsigned char key[]){
     RAND_bytes(key, sizeof(KEY_SIZE/BYTE_SIZE));
 }
-
 
 string unsignedChar2String(unsigned char* input){
     string output = (reinterpret_cast<char*>(input));
@@ -495,12 +517,19 @@ class Node{
         Bucket* bucket;
         bool isLeaf; // keep track of leafs 
         int count; // number of times node has been accesed since reshuffle 
+        int uids[BUCKETSIZE]; // stores the uids of the block, store random negative UIDs for dummy blocks
+        int valid[BUCKETSIZE]; // stores if block is valid or not
 
     Node(int index){ // pass index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
         bucket = new Bucket(); // deleted with ~
         count = 0; 
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+            uids[i] = randomNegative(); 
+            valid[i]= 0; 
+        }
     }
 
     Node(){ // dummy node for when removing things from server 
@@ -509,6 +538,11 @@ class Node{
         bucket = new Bucket(); // deleted with ~
         count = 0; 
 
+        for(int i = 0; i < BUCKETSIZE; i++){
+            uids[i] = randomNegative(); 
+            valid[i]= 0; 
+        }
+
     }
 
     void shuffle(){
@@ -516,10 +550,14 @@ class Node{
 
         array<int, BUCKETSIZE> order;
         Block* copy[BUCKETSIZE];  
+        int uidCopy[BUCKETSIZE]; 
+        int validCopy[BUCKETSIZE]; 
 
         for(int i =0; i < BUCKETSIZE; i++){
             order[i] = i; 
             copy[i] = bucket->blocks[i]; 
+            uidCopy[i] = uids[i];
+            validCopy[i] = valid[i]; 
         }
 
         std::random_device rd;
@@ -530,6 +568,8 @@ class Node{
 
         for(int i = 0; i < BUCKETSIZE; i++){
             bucket->blocks[i] = copy[order[i]]; 
+            uids[i] = uidCopy[order[i]]; 
+            valid[i] = validCopy[order[i]]; 
         }
 
     }
@@ -537,7 +577,13 @@ class Node{
     void printNode(int index){ // print node info + bucket
 
         cout << "\n --- NODE " << index << " accessed " << count << " times --- " << endl; 
-        cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl; 
+        cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl;
+
+        cout << "UIDS: "; 
+        printArraySize(uids, BUCKETSIZE); 
+        cout << "Valid: "; 
+        printArraySize(valid, BUCKETSIZE);
+
         bucket->printBucket();
         
     }
@@ -663,7 +709,6 @@ class Client{
         Node* wanted  = s->tree->nodes[nid]; 
         wanted->count = wanted->count + 1; // node access increment
         wanted->bucket->decryptBucket(key);
-
 
         if(wanted->count == S){ // shuffle the blocks in the node
             wanted->shuffle();
@@ -806,15 +851,18 @@ class Client{
             for(int i = 0; i < size; i++){ // look over stash 
 
                 Block* curr = stashGetBack(); // remove block from stash
-                if(leaf == 9){
-                }
                 
                 int common = commonAncestor(curr->leaf, leaf); // find lowest node block can be put in 
 
                 if(nodeID <= common){ // if block can be put in this node
                     delete nodey->bucket->blocks[fillable];
                     nodey->bucket->blocks[fillable] = curr; // add block to the bucket
+
+                    nodey->uids[fillable] = curr->uid; 
+                    nodey->valid[fillable] = 1;  
+
                     fillable++;
+
                 }
                 else{
                     stashPutFront(curr); // if cant put filled, put bac
@@ -939,7 +987,6 @@ void multipleTests(int iterations){
     delete [] avg; 
 
 }
-
 
 int main(){
     cout << "hello world\n" << endl;

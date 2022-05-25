@@ -3,38 +3,38 @@ hello world
 
  --- Client Position Map ---
 	UID	LEAF
-	1	7
-	2	10
-	3	9
-	4	8
+	1	13
+	2	12
+	3	11
+	4	10
 	5	10
-	6	12
-	7	7
-	8	13
+	6	8
+	7	14
+	8	8
 	9	10
 	10	12
-	11	7
-	12	12
-	13	11
+	11	12
+	12	11
+	13	10
 	14	9
-	15	10
+	15	7
 	16	14
-	17	14
-	18	8
+	17	13
+	18	7
 	19	7
-	20	11
-	21	14
-	22	8
-	23	12
-	24	12
-	25	7
-	26	12
-	27	10
+	20	8
+	21	9
+	22	12
+	23	8
+	24	9
+	25	14
+	26	11
+	27	7
 	28	13
 	29	7
-	30	14
-	31	8
-	32	9
+	30	10
+	31	12
+	32	12
 
  --- Client Stash ---
  --------------------------
@@ -44,32 +44,38 @@ hello world
 
  --- NODE 0 accessed 1 times --- 
 Left Index: 1 Right Index: 2 Parent Index: -1
+UIDS: [25, 16, 7, -582, -215, -576, -618]
+Valid: [1, 1, 1, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 18 LEAF: 8 DATA: i
-BLOCK ID: 31 LEAF: 8 DATA: v
-BLOCK ID: 22 LEAF: 8 DATA: m
-BLOCK ID: 6 LEAF: 12 DATA: is good
+BLOCK ID: 25 LEAF: 14 DATA: p
+BLOCK ID: 16 LEAF: 14 DATA: g
+BLOCK ID: 7 LEAF: 14 DATA: triple
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 1 accessed 2 times --- 
+ --- NODE 1 accessed 0 times --- 
 Left Index: 3 Right Index: 4 Parent Index: 0
+UIDS: [6, 20, 23, 8, -498, -247, -741]
+Valid: [1, 1, 1, 1, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 11 LEAF: 7 DATA: b
-BLOCK ID: 25 LEAF: 7 DATA: p
-BLOCK ID: 29 LEAF: 7 DATA: t
-BLOCK ID: 7 LEAF: 7 DATA: triple
-BLOCK ID: 19 LEAF: 7 DATA: j
-BLOCK ID: 1 LEAF: 7 DATA: Hello
-BLOCK ID: 4 LEAF: 8 DATA: more
+BLOCK ID: 6 LEAF: 8 DATA: is good
+BLOCK ID: 20 LEAF: 8 DATA: k
+BLOCK ID: 23 LEAF: 8 DATA: n
+BLOCK ID: 8 LEAF: 8 DATA: checking
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 2 accessed 2 times --- 
+ --- NODE 2 accessed 1 times --- 
 Left Index: 5 Right Index: 6 Parent Index: 0
+UIDS: [-388, -117, -78, -452, -491, -284, -21]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -81,8 +87,10 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 3 accessed 1 times --- 
+ --- NODE 3 accessed 0 times --- 
 Left Index: 7 Right Index: 8 Parent Index: 1
+UIDS: [-328, -653, -734, -9, -742, -122, -300]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -94,21 +102,25 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 4 accessed 1 times --- 
+ --- NODE 4 accessed 0 times --- 
 Left Index: 9 Right Index: 10 Parent Index: 1
+UIDS: [4, 5, 30, 13, 9, -730, -146]
+Valid: [1, 1, 1, 1, 1, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: 4 LEAF: 10 DATA: more
+BLOCK ID: 5 LEAF: 10 DATA: data
+BLOCK ID: 30 LEAF: 10 DATA: u
+BLOCK ID: 13 LEAF: 10 DATA: d
+BLOCK ID: 9 LEAF: 10 DATA: this stuff
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 5 accessed 2 times --- 
+ --- NODE 5 accessed 1 times --- 
 Left Index: 11 Right Index: 12 Parent Index: 2
+UIDS: [-553, -177, -163, -339, -212, -467, -695]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -122,6 +134,8 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 
  --- NODE 6 accessed 0 times --- 
 Left Index: 13 Right Index: 14 Parent Index: 2
+UIDS: [-800, -391, -243, -712, -437, -463, -461]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -133,21 +147,25 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 7 accessed 2 times --- 
+ --- NODE 7 accessed 0 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
+UIDS: [19, 27, 15, 18, 29, -327, -397]
+Valid: [1, 1, 1, 1, 1, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: 19 LEAF: 7 DATA: j
+BLOCK ID: 27 LEAF: 7 DATA: r
+BLOCK ID: 15 LEAF: 7 DATA: f
+BLOCK ID: 18 LEAF: 7 DATA: i
+BLOCK ID: 29 LEAF: 7 DATA: t
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 8 accessed 2 times --- 
+ --- NODE 8 accessed 0 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 3
+UIDS: [-70, -331, -582, -377, -414, -708, -355]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -161,63 +179,73 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 
  --- NODE 9 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
+UIDS: [14, 21, 24, -495, -85, -559, -522]
+Valid: [1, 1, 1, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 32 LEAF: 9 DATA: w
 BLOCK ID: 14 LEAF: 9 DATA: e
-BLOCK ID: 3 LEAF: 9 DATA: yay!
+BLOCK ID: 21 LEAF: 9 DATA: l
+BLOCK ID: 24 LEAF: 9 DATA: o
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 10 accessed 2 times --- 
+ --- NODE 10 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 4
+UIDS: [-282, -16, -724, -199, -53, -269, -562]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 27 LEAF: 10 DATA: r
-BLOCK ID: 9 LEAF: 10 DATA: this stuff
-BLOCK ID: 15 LEAF: 10 DATA: f
-BLOCK ID: 2 LEAF: 10 DATA: Working
-BLOCK ID: 5 LEAF: 10 DATA: data
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
  --- NODE 11 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
+UIDS: [12, 26, 3, -557, -24, -554, -7]
+Valid: [1, 1, 1, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 13 LEAF: 11 DATA: d
-BLOCK ID: 20 LEAF: 11 DATA: k
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: 12 LEAF: 11 DATA: c
+BLOCK ID: 26 LEAF: 11 DATA: q
+BLOCK ID: 3 LEAF: 11 DATA: yay!
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
- --- NODE 12 accessed 1 times --- 
+ --- NODE 12 accessed 0 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 5
+UIDS: [32, 22, 2, 11, 31, 10, -616]
+Valid: [1, 1, 1, 1, 1, 1, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 23 LEAF: 12 DATA: n
+BLOCK ID: 32 LEAF: 12 DATA: w
+BLOCK ID: 22 LEAF: 12 DATA: m
+BLOCK ID: 2 LEAF: 12 DATA: Working
+BLOCK ID: 11 LEAF: 12 DATA: b
+BLOCK ID: 31 LEAF: 12 DATA: v
 BLOCK ID: 10 LEAF: 12 DATA: a
-BLOCK ID: 12 LEAF: 12 DATA: c
-BLOCK ID: 24 LEAF: 12 DATA: o
-BLOCK ID: 26 LEAF: 12 DATA: q
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 --------------------------
 
  --- NODE 13 accessed 1 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
+UIDS: [28, 1, 17, -470, -275, -222, -438]
+Valid: [1, 1, 1, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 8 LEAF: 13 DATA: checking
 BLOCK ID: 28 LEAF: 13 DATA: s
-BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: 1 LEAF: 13 DATA: Hello
+BLOCK ID: 17 LEAF: 13 DATA: h
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
@@ -226,12 +254,14 @@ BLOCK ID: -1 LEAF: -1 DATA: Dummy
 
  --- NODE 14 accessed 2 times --- 
 Left Index: -1 Right Index: -1 Parent Index: 6
+UIDS: [-470, -315, -679, -267, -158, -300, -451]
+Valid: [0, 0, 0, 0, 0, 0, 0]
 
 --- BUCKET w/ size 7 --- 
-BLOCK ID: 17 LEAF: 14 DATA: h
-BLOCK ID: 16 LEAF: 14 DATA: g
-BLOCK ID: 30 LEAF: 14 DATA: u
-BLOCK ID: 21 LEAF: 14 DATA: l
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
+BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
 BLOCK ID: -1 LEAF: -1 DATA: Dummy
