@@ -519,16 +519,18 @@ class Node{
         int count; // number of times node has been accesed since reshuffle 
         int uids[BUCKETSIZE]; // stores the uids of the block, store random negative UIDs for dummy blocks
         int valid[BUCKETSIZE]; // stores if block is valid or not
+        int fullFactor; // keeo track of number of real blocks in Node
 
     Node(int index){ // pass index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
         bucket = new Bucket(); // deleted with ~
-        count = 0; 
+        count = 0;
+        fullFactor = 0;  
 
         for(int i = 0; i < BUCKETSIZE; i++){
             uids[i] = randomNegative(); 
-            valid[i]= 0; 
+            valid[i]= 1; 
         }
     }
 
@@ -537,12 +539,17 @@ class Node{
         isLeaf = false;
         bucket = new Bucket(); // deleted with ~
         count = 0; 
+        fullFactor = 0; 
 
         for(int i = 0; i < BUCKETSIZE; i++){
             uids[i] = randomNegative(); 
-            valid[i]= 0; 
+            valid[i]= 1; 
         }
 
+    }
+
+    bool isFull(){
+        return (fullFactor==Z); // node is full if bucket has z real blocks  
     }
 
     void shuffle(){
@@ -576,7 +583,7 @@ class Node{
 
     void printNode(int index){ // print node info + bucket
 
-        cout << "\n --- NODE " << index << " accessed " << count << " times --- " << endl; 
+        cout << "\n --- NODE " << index << " Access Count: " << count << " Full Factor: " << fullFactor << " --- " << endl; 
         cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl;
 
         cout << "UIDS: "; 
@@ -854,12 +861,12 @@ class Client{
                 
                 int common = commonAncestor(curr->leaf, leaf); // find lowest node block can be put in 
 
-                if(nodeID <= common){ // if block can be put in this node
+                if(nodeID <= common && !nodey->isFull()){ // if block can be put in this node
                     delete nodey->bucket->blocks[fillable];
                     nodey->bucket->blocks[fillable] = curr; // add block to the bucket
 
                     nodey->uids[fillable] = curr->uid; 
-                    nodey->valid[fillable] = 1;  
+                    nodey->fullFactor += 1;  
 
                     fillable++;
 
