@@ -558,13 +558,11 @@ class Node{
         array<int, BUCKETSIZE> order;
         Block* copy[BUCKETSIZE];  
         int uidCopy[BUCKETSIZE]; 
-        int validCopy[BUCKETSIZE]; 
 
         for(int i =0; i < BUCKETSIZE; i++){
             order[i] = i; 
             copy[i] = bucket->blocks[i]; 
             uidCopy[i] = uids[i];
-            validCopy[i] = valid[i]; 
         }
 
         std::random_device rd;
@@ -576,7 +574,7 @@ class Node{
         for(int i = 0; i < BUCKETSIZE; i++){
             bucket->blocks[i] = copy[order[i]]; 
             uids[i] = uidCopy[order[i]]; 
-            valid[i] = validCopy[order[i]]; 
+            valid[i] = 1; // every block can be grabbed again because it has been reshuffled 
         }
 
     }
@@ -695,6 +693,13 @@ class Client{
         cout << " --------------------------" << endl;
     }
 
+    void printStash(){
+        cout << "\n --- Client Stash ---" << endl;
+        for(Block* i : stash){
+            i->printBlock(); 
+        }
+    }
+
     void storeNode(Server* s, Node* n, int index){
         n->count = s->tree->nodes[index]->count; 
         n->bucket->encryptBucket(key); 
@@ -726,6 +731,62 @@ class Client{
         s->tree->nodes[nid] = dummy; // deleted with ~
         return wanted; 
 
+    }
+
+    Block* fetchBlock(Server* s, int nid, int offset){ // fetch block
+
+        Block* dummy = new Block(); 
+        dummy->easy_encrypt(key); 
+
+        Block* wanted = s->tree->nodes[nid]->bucket->blocks[offset]; 
+        s->tree->nodes[nid]->bucket->blocks[offset] = dummy;
+
+        if(wanted->data != DUMMY){
+            s->tree->nodes[nid]->fullFactor -=1;
+            s->tree->nodes[nid]->uids[offset] = randomNegative(); 
+        }
+
+        s->tree->nodes[nid]->count +=1;  
+        if(s->tree->nodes[nid]->count == S){
+            Node* wanted  = s->tree->nodes[nid];
+            wanted->bucket->decryptBucket(key);
+            wanted->shuffle();
+            wanted->bucket->encryptBucket(key);
+            s->tree->nodes[nid] = wanted;
+        }
+
+        return wanted; 
+
+    }
+
+    void fetchMetadata(Server* s, int leaf, int targetUID, int* offsets){
+        
+        int path[PATHSIZE]; 
+        getPath(leaf, path); 
+
+        for(int n = 0; n < PATHSIZE; n++){ // iterate through every node on the path
+            int nodeID = path[n]; 
+            // TODO decrypt metadata here 
+            int* uids = s->tree->nodes[nodeID]->uids; 
+            int* valid = s->tree->nodes[nodeID]->valid; 
+
+            bool touched = false; 
+
+            for(int x = 0; x < BUCKETSIZE; x++){ // look at metadata for every node on path
+                if(uids[x] == targetUID){ // if uid matches, 
+                    offsets[n] = x; // you found the offst you want!
+                    valid[x] = 0;  // cannot grab again until reshuffed 
+                    touched = true; 
+                }
+                if((uids[x] != targetUID) && (uids[x] < 0) && (valid[x] == 1) && !touched){ // set offset to dummy block
+                    offsets[n] = x;  // valid dummy block for return 
+                    valid[x] = 0; 
+                    touched = true; 
+                } 
+            }
+
+            // TODO encrypted metadata here
+        }
     }
 
     void deleteStashDummys(){
@@ -764,6 +825,27 @@ class Client{
         deleteStashDummys();
     }
 
+    void fillStashLight(Server* s, int leaf, int targetUID){ // only gets blocks using metadata 
+
+        cout << "In fill stash light" << endl; 
+
+        int path[PATHSIZE]; 
+        getPath(leaf,path); 
+
+        int offsets[PATHSIZE]; 
+
+        fetchMetadata(s,leaf,targetUID, offsets); 
+
+        printArray(offsets); 
+
+        for (int i = 0; i < PATHSIZE; i++){
+            Block* got = fetchBlock(s, path[i], offsets[i]);
+            stash.push_back(got);  
+        }
+
+        deleteStashDummys(); 
+    }
+
     Block* stashGetBack(){
 
         Block* check = stash.back();
@@ -777,13 +859,39 @@ class Client{
         stash.insert(stash.begin(), newFront);
     }
 
+    // string read(Server* s, int uid){
+
+    //     accesses +=1; 
+
+    //     int oldLeaf = position_map[uid]; // create random new leaf for block
+
+    //     fillStash(s,oldLeaf); 
+    //     Block* found; 
+
+    //     for(Block* i : stash){
+    //         if(i->uid  == uid){
+    //             found = i; 
+    //             break; 
+    //         }
+    //     }
+
+    //     int newLeaf = randomLeaf();
+    //     position_map[uid] = newLeaf;
+    //     found->leaf = newLeaf; 
+        
+    //     string store = found->data; // store answer before encrypting it away!
+    //     evict(s);
+    //     return store; 
+
+    // }
+
     string read(Server* s, int uid){
 
         accesses +=1; 
 
         int oldLeaf = position_map[uid]; // create random new leaf for block
 
-        fillStash(s,oldLeaf); 
+        fillStashLight(s,oldLeaf, uid); 
         Block* found; 
 
         for(Block* i : stash){
@@ -803,6 +911,38 @@ class Client{
 
     }
 
+    // void write(Server* s, int uid, string data){
+
+    //     accesses +=1; 
+
+    //     if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
+    //         position_map[uid] = randomLeaf(); // assign a leaf node
+    //         int leaf = position_map[uid];
+
+    //         fillStash(s,leaf); // fetch path from stash
+
+    //         Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
+    //         stash.push_back(alpha);
+    //     }
+    //     else{ // uid is in tree so get it and update it
+            
+    //         int oldLeaf = position_map[uid]; // create random new leaf for block
+    //         int newLeaf = randomLeaf();
+    //         position_map[uid] = newLeaf;
+
+    //         fillStash(s,oldLeaf); // fetch path from stash
+
+    //         for(Block* i : stash){ // iterate over stash, looking to update block 
+    //             if(i->uid  == uid){
+    //                 i->data = data; 
+    //                 i->leaf = newLeaf; 
+    //                 break; 
+    //             }
+    //         }
+    //     }
+    //     evict(s); 
+    // }
+
     void write(Server* s, int uid, string data){
 
         accesses +=1; 
@@ -810,8 +950,8 @@ class Client{
         if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
             position_map[uid] = randomLeaf(); // assign a leaf node
             int leaf = position_map[uid];
-
-            fillStash(s,leaf); // fetch path from stash
+            //cout << "UID " << uid << " LEAF " << leaf << endl; 
+            fillStashLight(s,leaf,uid); // fetch path from stash
 
             Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
             stash.push_back(alpha);
@@ -822,7 +962,7 @@ class Client{
             int newLeaf = randomLeaf();
             position_map[uid] = newLeaf;
 
-            fillStash(s,oldLeaf); // fetch path from stash
+            fillStashLight(s,oldLeaf,uid); // fetch path from stash
 
             for(Block* i : stash){ // iterate over stash, looking to update block 
                 if(i->uid  == uid){
@@ -843,13 +983,17 @@ class Client{
 
         accesses = 0; 
         int leaf = evictingPath; 
+
+        cout << "Evicting Path" << leaf << endl;
         fillStash(s, leaf); 
 
         int path[PATHSIZE]; // deleted
         getPath(leaf, path); // get the indexes of the path
         
         for(int n = PATHSIZE-1; n >= 0; n--){ // iterate fromn bottom of path to top 
-    
+
+            cout << "Node" << path[n] << endl; 
+
             int nodeID = path[n]; // the nodeID of current node 
             Node* nodey = new Node();
             int fillable = 0; // last place a block was written

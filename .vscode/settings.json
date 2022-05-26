@@ -24,6 +24,10 @@
         "*.dfy": "dafny",
         "iostream": "cpp",
         "*.tcc": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "chrono": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "bitset": "cpp"
     }
 }
