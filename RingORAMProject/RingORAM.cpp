@@ -31,7 +31,7 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 8; // size of tree (pick a factor of 2)
+const int N = 1024; // size of tree (pick a factor of 2)
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 7; // Size of bucket is set to 7
 const int Z = 4; // max number of real blocks per bucket
@@ -43,7 +43,7 @@ const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
 const float TEST_CAPACITY = 0.75; // percentage you want to fill the tree when testing
 const int MAX_DATA = int(N*TEST_CAPACITY); // # of random data strings to create
-const int DATA_SIZE = 1000; // length of random data strings 
+const int DATA_SIZE = 1024; // length of random data strings 
 
 const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
@@ -102,10 +102,6 @@ int randomLeaf(){ // TODO not crypto secure
 
 int randomRange(int small, int big){ // pick random value from range
     return small + rand() % ((big - small + 1));
-}
-
-int randomNegative(){
-    return -1*randomRange(1, 100 * N); 
 }
 
 void levelRange(int level, int range[]){ // get node index at level 
@@ -180,7 +176,7 @@ int parent(int index){ // get index of parent node
     return(floor((index-1)/2));
 }
 
- void getPath(int leafid, int path[]){ // get the indexes for path to leaf 
+void getPath(int leafid, int path[]){ // get the indexes for path to leaf 
 
     int backwards = PATHSIZE - 1; 
     int currentNode = leafid;
@@ -206,9 +202,26 @@ void generateKey(unsigned char key[]){
     RAND_bytes(key, sizeof(KEY_SIZE/BYTE_SIZE));
 }
 
+void generateIV(unsigned char iv[]){
+        RAND_bytes(iv, sizeof(IV_SIZE/BYTE_SIZE)); 
+}
+
 string unsignedChar2String(unsigned char* input){
     string output = (reinterpret_cast<char*>(input));
     return output;
+}
+
+void string2UnsignedChar(unsigned char* store, string data){ 
+    strcpy((char*) store, data.c_str());
+
+}
+
+void emptyArray(unsigned char emptying[], int size){
+    std::fill_n(emptying, BUCKETSIZE, 0x00); // using standard fill instead of for loop reduced latency by 1/2
+        
+    // for(int i = 0; i < size; i++){ 
+    //     emptying[i] = 0; 
+    // }
 }
 
 void handleErrors(void){
@@ -340,18 +353,6 @@ class Block{
 
     }
 
-    void generateIV(){
-        RAND_bytes(iv, sizeof(IV_SIZE/BYTE_SIZE)); 
-    }
-
-    void emptyArray(unsigned char emptying[], int size){
-        std::fill_n(emptying, BUCKETSIZE, 0x00); // using standard fill instead of for loop reduced latency by 1/2
-        
-        // for(int i = 0; i < size; i++){ 
-        //     emptying[i] = 0; 
-        // }
-    }
-
     void makePayload(){ // create payload for encrypting data
         string uid_string = to_string(uid); 
         string leaf_string = to_string(leaf); 
@@ -383,20 +384,15 @@ class Block{
 
     }
 
-    void string2UnsignedChar(unsigned char store[]){ 
-        strcpy( (char*) store, data.c_str());
-
-    }
-
     void easy_encrypt(unsigned char *key){
 
         if(ENCRYPTION){
 
             makePayload();
-            generateIV(); 
+            generateIV(iv); 
 
             unsigned char plaintext[data.length()];
-            string2UnsignedChar(plaintext);
+            string2UnsignedChar(plaintext, data);
             
             /*
             * Buffer for ciphertext. Ensure the buffer is long enough for the
@@ -521,6 +517,11 @@ class Node{
         int valid[BUCKETSIZE]; // stores if block is valid or not
         int fullFactor; // keeo track of number of real blocks in Node
 
+        bool encrypted; 
+        unsigned char iv[IV_SIZE/BYTE_SIZE];
+        unsigned char ciphertext[BUFFER_SIZE]; 
+        int cipher_len; 
+
     Node(int index){ // pass index of node
 
         isLeaf = checkLeaf(index); // leaf boolean
@@ -529,9 +530,14 @@ class Node{
         fullFactor = 0;  
 
         for(int i = 0; i < BUCKETSIZE; i++){
-            uids[i] = randomNegative(); 
+            uids[i] = -1; 
             valid[i]= 1; 
         }
+
+        emptyArray(iv, IV_SIZE/BYTE_SIZE); 
+        encrypted = false;
+        emptyArray(ciphertext, BUFFER_SIZE);  
+        cipher_len = 0; 
     }
 
     Node(){ // dummy node for when removing things from server 
@@ -542,9 +548,14 @@ class Node{
         fullFactor = 0; 
 
         for(int i = 0; i < BUCKETSIZE; i++){
-            uids[i] = randomNegative(); 
+            uids[i] = -1; 
             valid[i]= 1; 
         }
+
+        emptyArray(iv, IV_SIZE/BYTE_SIZE); 
+        encrypted = false;
+        emptyArray(ciphertext, BUFFER_SIZE);  
+        cipher_len = 0; 
 
     }
 
@@ -569,8 +580,6 @@ class Node{
         std::mt19937 g(rd());
         std::shuffle(order.begin(), order.end(), g);
 
-        //random_shuffle(std::begin(order), std::end(order));
-
         for(int i = 0; i < BUCKETSIZE; i++){
             bucket->blocks[i] = copy[order[i]]; 
             uids[i] = uidCopy[order[i]]; 
@@ -579,17 +588,134 @@ class Node{
 
     }
 
+    string makePayload(){
+
+        string load = to_string(fullFactor); 
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+            load = load + "," + to_string(uids[i]);
+            uids[i] = 0; 
+        } 
+        fullFactor = 0; 
+        return load;  
+    }
+
+    void breakPayload(string data){ // 
+        
+        string delimiter = ",";
+
+        size_t pos = 0;                   
+        pos = data.find(delimiter); 
+        string full_string = data.substr(0, pos); 
+        data.erase(0, pos + delimiter.length());
+        fullFactor = stoi(full_string); 
+
+        for(int i = 0; i < BUCKETSIZE; i++){
+
+            pos = 0;
+            pos = data.find(delimiter); 
+            string uid_string = data.substr(0, pos); 
+            data.erase(0, pos + delimiter.length());
+            uids[i] = stoi(uid_string); 
+
+        }
+        
+    }
+
+    void encrypt_Metadata(unsigned char *key){
+
+        if(ENCRYPTION){
+
+            string data = makePayload();
+            generateIV(iv); 
+
+            unsigned char plaintext[data.length()];
+            string2UnsignedChar(plaintext, data);
+            
+            /*
+            * Buffer for ciphertext. Ensure the buffer is long enough for the
+            * ciphertext which may be longer than the plaintext, depending on the
+            * algorithm and mode.
+            */
+
+            /* Encrypt the plaintext */
+            cipher_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
+        
+        }
+    }
+
+    void decrypt_Metadata(unsigned char *key){
+
+        if(ENCRYPTION){
+        
+            unsigned char decryptedtext[BUFFER_SIZE];
+            int decryptedtext_len;
+
+            /* Decrypt the ciphertext */
+            decryptedtext_len = decrypt(ciphertext, cipher_len, key, iv, decryptedtext);
+            decryptedtext[decryptedtext_len] = '\0';
+            string data = unsignedChar2String(decryptedtext); 
+
+            breakPayload(data);
+
+            emptyArray(iv, IV_SIZE/BYTE_SIZE);  
+
+            emptyArray(ciphertext, BUFFER_SIZE);  
+            cipher_len = 0; 
+
+        }
+
+    }
+
+    void encryptNode(unsigned char* key){
+        if(ENCRYPTION){
+            encrypt_Metadata(key); 
+            bucket->encryptBucket(key); 
+            encrypted = true; 
+        }
+    }
+
+    void decryptNode(unsigned char* key){
+        if(ENCRYPTION){
+            decrypt_Metadata(key); 
+            bucket->decryptBucket(key); 
+            encrypted = false; 
+        }
+    }
+
+    void printCipher(){
+        /* Do something useful with the ciphertext here */
+        printf("Ciphertext for Encrypted Metadata:\n");
+        BIO_dump_fp (stdout, (const char *)ciphertext, cipher_len);
+    }
+
     void printNode(int index){ // print node info + bucket
 
-        cout << "\n --- NODE " << index << " Access Count: " << count << " Full Factor: " << fullFactor << " --- " << endl; 
-        cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl;
+        if(!encrypted){
+            cout << "\n --- NODE " << index << " Access Count: " << count << " Full Factor: " << fullFactor << " --- " << endl; 
+            cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl;
 
-        cout << "UIDS: "; 
-        printArraySize(uids, BUCKETSIZE); 
-        cout << "Valid: "; 
-        printArraySize(valid, BUCKETSIZE);
+            cout << "UIDS: "; 
+            printArraySize(uids, BUCKETSIZE); 
+            cout << "Valid: "; 
+            printArraySize(valid, BUCKETSIZE);
 
-        bucket->printBucket();
+            bucket->printBucket();
+        }
+
+        else{
+            cout << "\n --- NODE " << index << " Access Count: " << count << " Full Factor: ENCRYPTED --- " << endl; 
+            cout << "Left Index: " << left(index) << " Right Index: " << right(index) << " Parent Index: " << parent(index) << endl;
+
+            cout << "UIDS: ENCRYPTED " << endl; 
+            cout << "Valid: "; 
+            printArraySize(valid, BUCKETSIZE);
+            
+            cout<< "\n"; 
+            printCipher(); 
+
+            bucket->printBucket();
+        }
         
     }
 
@@ -701,8 +827,9 @@ class Client{
     }
 
     void storeNode(Server* s, Node* n, int index){
-        n->count = s->tree->nodes[index]->count; 
-        n->bucket->encryptBucket(key); 
+        n->count = s->tree->nodes[index]->count;
+        n->encryptNode(key);  
+        //n->bucket->encryptBucket(key); 
         delete s->tree->nodes[index]; 
         s->tree->nodes[index] = n; 
     }
@@ -716,11 +843,13 @@ class Client{
     Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
 
         Node* dummy = new Node();
-        dummy->bucket->encryptBucket(key);
+        dummy->encryptNode(key); 
+        //dummy->bucket->encryptBucket(key);
 
         Node* wanted  = s->tree->nodes[nid]; 
         wanted->count = wanted->count + 1; // node access increment
-        wanted->bucket->decryptBucket(key);
+        wanted->decryptNode(key); 
+        //wanted->bucket->decryptBucket(key);
 
         if(wanted->count == S){ // shuffle the blocks in the node
             wanted->shuffle();
@@ -739,19 +868,22 @@ class Client{
         dummy->easy_encrypt(key); 
 
         Block* wanted = s->tree->nodes[nid]->bucket->blocks[offset]; 
+        wanted->easy_decrypt(key); 
         s->tree->nodes[nid]->bucket->blocks[offset] = dummy;
 
         if(wanted->data != DUMMY){
             s->tree->nodes[nid]->fullFactor -=1;
-            s->tree->nodes[nid]->uids[offset] = randomNegative(); 
+            s->tree->nodes[nid]->uids[offset] = -1; 
         }
 
         s->tree->nodes[nid]->count +=1;  
         if(s->tree->nodes[nid]->count == S){
             Node* wanted  = s->tree->nodes[nid];
-            wanted->bucket->decryptBucket(key);
+            wanted->decryptNode(key);
+            //wanted->bucket->decryptBucket(key);
             wanted->shuffle();
-            wanted->bucket->encryptBucket(key);
+            wanted->encryptNode(key); 
+            //wanted->bucket->encryptBucket(key);
             s->tree->nodes[nid] = wanted;
         }
 
@@ -767,6 +899,7 @@ class Client{
         for(int n = 0; n < PATHSIZE; n++){ // iterate through every node on the path
             int nodeID = path[n]; 
             // TODO decrypt metadata here 
+            s->tree->nodes[nodeID]->decrypt_Metadata(key);
             int* uids = s->tree->nodes[nodeID]->uids; 
             int* valid = s->tree->nodes[nodeID]->valid; 
 
@@ -784,7 +917,7 @@ class Client{
                     touched = true; 
                 } 
             }
-
+            s->tree->nodes[nodeID]->encrypt_Metadata(key);
             // TODO encrypted metadata here
         }
     }
@@ -827,16 +960,12 @@ class Client{
 
     void fillStashLight(Server* s, int leaf, int targetUID){ // only gets blocks using metadata 
 
-        cout << "In fill stash light" << endl; 
-
         int path[PATHSIZE]; 
         getPath(leaf,path); 
 
         int offsets[PATHSIZE]; 
 
         fetchMetadata(s,leaf,targetUID, offsets); 
-
-        printArray(offsets); 
 
         for (int i = 0; i < PATHSIZE; i++){
             Block* got = fetchBlock(s, path[i], offsets[i]);
@@ -858,32 +987,6 @@ class Client{
     void stashPutFront(Block* newFront){
         stash.insert(stash.begin(), newFront);
     }
-
-    // string read(Server* s, int uid){
-
-    //     accesses +=1; 
-
-    //     int oldLeaf = position_map[uid]; // create random new leaf for block
-
-    //     fillStash(s,oldLeaf); 
-    //     Block* found; 
-
-    //     for(Block* i : stash){
-    //         if(i->uid  == uid){
-    //             found = i; 
-    //             break; 
-    //         }
-    //     }
-
-    //     int newLeaf = randomLeaf();
-    //     position_map[uid] = newLeaf;
-    //     found->leaf = newLeaf; 
-        
-    //     string store = found->data; // store answer before encrypting it away!
-    //     evict(s);
-    //     return store; 
-
-    // }
 
     string read(Server* s, int uid){
 
@@ -911,38 +1014,6 @@ class Client{
 
     }
 
-    // void write(Server* s, int uid, string data){
-
-    //     accesses +=1; 
-
-    //     if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
-    //         position_map[uid] = randomLeaf(); // assign a leaf node
-    //         int leaf = position_map[uid];
-
-    //         fillStash(s,leaf); // fetch path from stash
-
-    //         Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
-    //         stash.push_back(alpha);
-    //     }
-    //     else{ // uid is in tree so get it and update it
-            
-    //         int oldLeaf = position_map[uid]; // create random new leaf for block
-    //         int newLeaf = randomLeaf();
-    //         position_map[uid] = newLeaf;
-
-    //         fillStash(s,oldLeaf); // fetch path from stash
-
-    //         for(Block* i : stash){ // iterate over stash, looking to update block 
-    //             if(i->uid  == uid){
-    //                 i->data = data; 
-    //                 i->leaf = newLeaf; 
-    //                 break; 
-    //             }
-    //         }
-    //     }
-    //     evict(s); 
-    // }
-
     void write(Server* s, int uid, string data){
 
         accesses +=1; 
@@ -950,7 +1021,6 @@ class Client{
         if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
             position_map[uid] = randomLeaf(); // assign a leaf node
             int leaf = position_map[uid];
-            //cout << "UID " << uid << " LEAF " << leaf << endl; 
             fillStashLight(s,leaf,uid); // fetch path from stash
 
             Block* alpha = new Block(uid, leaf, data); // create new block and add it to the stash
@@ -984,15 +1054,12 @@ class Client{
         accesses = 0; 
         int leaf = evictingPath; 
 
-        cout << "Evicting Path" << leaf << endl;
         fillStash(s, leaf); 
 
         int path[PATHSIZE]; // deleted
         getPath(leaf, path); // get the indexes of the path
         
         for(int n = PATHSIZE-1; n >= 0; n--){ // iterate fromn bottom of path to top 
-
-            cout << "Node" << path[n] << endl; 
 
             int nodeID = path[n]; // the nodeID of current node 
             Node* nodey = new Node();
@@ -1142,63 +1209,87 @@ void multipleTests(int iterations){
 int main(){
     cout << "hello world\n" << endl;
 
-    //multipleTests(1); 
+    multipleTests(1); 
 
-    Client* c1 = new Client(); 
-    Server* s = new Server();
+    // unsigned char key[KEY_SIZE/BYTE_SIZE];
+    // generateKey(key); 
 
-    c1->initServer(s);
+    // Node* x = new Node();
 
-    c1->write(s, 1,"Hello"); 
-    c1->write(s, 2,"Working"); 
-    c1->write(s, 3,"yay!");
+    // Block* a = new Block(67,8,"testing0");
+    // Block* b = new Block(78,8,"testing1");
+    // Block* c = new Block(1045,8,"testing like a mf");
 
-    c1->write(s, 4,"more"); 
-    c1->write(s, 5,"data"); 
-    c1->write(s, 6,"is good");
+    // x->bucket->blocks[0] = a; 
+    // x->bucket->blocks[1] = b; 
+    //  x->bucket->blocks[4] = c; 
 
-    c1->write(s, 7,"triple"); 
-    c1->write(s, 8,"checking"); 
-    c1->write(s, 9,"this stuff");
+    // x->fullFactor +=3; 
+    // x->uids[0] = 67; 
+    // x->uids[1] = 78; 
+    // x->uids[4] = 1045; 
 
-    c1->write(s, 10,"a"); 
-    c1->write(s, 11,"b"); 
-    c1->write(s, 12,"c"); 
-    c1->write(s, 13,"d"); 
-    c1->write(s, 14,"e");
-    c1->write(s, 15,"f"); 
-    c1->write(s, 16,"g"); 
-    c1->write(s, 17,"h");
-    c1->write(s, 18,"i");
-    c1->write(s, 19,"j"); 
-    c1->write(s, 20,"k"); 
-    c1->write(s, 21,"l");
-    c1->write(s, 22,"m");
-    c1->write(s, 23,"n");
-    c1->write(s, 24,"o");
-    c1->write(s, 25,"p");
-    c1->write(s, 26,"q");
-    c1->write(s, 27,"r");
-    c1->write(s, 28,"s");
-    c1->write(s, 29,"t");
-    c1->write(s, 30,"u");
-    c1->write(s, 31,"v");
-    c1->write(s, 32,"w");
+    // x->printNode(0);
+    // x->encryptNode(key); 
+    // x->printNode(0);
+    // x->decryptNode(key);
+    // x->printNode(0);
 
-    string hello = c1->read(s, 1); 
+    // Client* c1 = new Client(); 
+    // Server* s = new Server();
 
-    string working = c1->read(s, 2); 
-    string yay = c1->read(s, 3);
+    // c1->initServer(s);
 
-    string more = c1->read(s, 4); 
-    string data = c1->read(s, 5); 
-    string good = c1->read(s, 6);
+    // c1->write(s, 1,"Hello"); 
+    // c1->write(s, 2,"Working"); 
+    // c1->write(s, 3,"yay!");
 
-    c1->printClient(); 
-    s->printServer(); 
+    // c1->write(s, 4,"more"); 
+    // c1->write(s, 5,"data"); 
+    // c1->write(s, 6,"is good");
+
+    // c1->write(s, 7,"triple"); 
+    // c1->write(s, 8,"checking"); 
+    // c1->write(s, 9,"this stuff");
+
+    // c1->write(s, 10,"a"); 
+    // c1->write(s, 11,"b"); 
+    // c1->write(s, 12,"c"); 
+    // c1->write(s, 13,"d"); 
+    // c1->write(s, 14,"e");
+    // c1->write(s, 15,"f"); 
+    // c1->write(s, 16,"g"); 
+    // c1->write(s, 17,"h");
+    // c1->write(s, 18,"i");
+    // c1->write(s, 19,"j"); 
+    // c1->write(s, 20,"k"); 
+    // c1->write(s, 21,"l");
+    // c1->write(s, 22,"m");
+    // c1->write(s, 23,"n");
+    // c1->write(s, 24,"o");
+    // c1->write(s, 25,"p");
+    // c1->write(s, 26,"q");
+    // c1->write(s, 27,"r");
+    // c1->write(s, 28,"s");
+    // c1->write(s, 29,"t");
+    // c1->write(s, 30,"u");
+    // c1->write(s, 31,"v");
+    // c1->write(s, 32,"w");
+
+    // string hello = c1->read(s, 1); 
+
+    // string working = c1->read(s, 2); 
+    // string yay = c1->read(s, 3);
+
+    // string more = c1->read(s, 4); 
+    // string data = c1->read(s, 5); 
+    // string good = c1->read(s, 6); 
+
+    // c1->printClient(); 
+    // s->printServer(); 
  
-    cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
+    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
-    delete s; 
-    delete c1;
+    // delete s; 
+    // delete c1;
 }   
