@@ -1,0 +1,10 @@
+RingORAM Results for Tree of Size 2^20 (1048576)
+Tree Accesssed 100 times
+Data strings of length 1024 (1024 is 1 KB)
+Hyperparameters Z=4 S=3 A=2
+
+Total Progam Time: 152774433 microseconds
+Setup Latency: 152560153 microseconds
+Average Data Access Latency: 2142 microseconds
+Average Eviction Latency: 1339 microseconds
+This number should be close to 0 : 80

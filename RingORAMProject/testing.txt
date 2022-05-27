@@ -1,12 +1,9 @@
-hello world
-
 Results for Tree of Size 2^10 (1024)
-Tree filled to 75%
-Data strings of length 1024
+Tree Accesssed 100 times
+Data strings of length 1024 (1024 is 1 KB)
 
-___ Average Read Latency in microseconds ___
-[3194]
-___ Average Write Latency in microseconds ___
-[2005]
-___ Average Data Access Latency in microseconds ___
-[2599]
+Total Progam Time: 260009 microseconds
+Setup Latency: 91870 microseconds
+Average Data Access Latency: 1681 microseconds
+Average Eviction Latency: 1269 microseconds
+This number should be close to 0 : 39

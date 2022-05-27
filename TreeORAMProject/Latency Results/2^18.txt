@@ -1,14 +1,9 @@
-hello world
+TreeORAM Results for Tree of Size 2^18 (262144)
+Tree Accesssed 100 times
+Data strings of length 1024 (1024 is 1 KB)
 
-Writes is: 3626
-Reads is: 3294
-Results for Tree of Size 2^18 (262144)
-Tree filled to 75%
-Data strings of length 1000
-
-___ Average Read Latency in microseconds ___
-[0, ]
-___ Average Write Latency in microseconds ___
-[0, ]
-___ Average Data Access Latency in microseconds ___
-[0, ]
+Total Progam Time: 80447212 microseconds
+Setup Latency: 78142491 microseconds
+Average Data Access Latency: 23047 microseconds
+Average Eviction Latency: 18883 microseconds
+This number should be close to 0 : 21

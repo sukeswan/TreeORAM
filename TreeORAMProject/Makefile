@@ -10,7 +10,7 @@
 main:
 	clear
 	g++ -std=c++17 -lprofiler -lpthread -lcrypto  TreeORAM.cpp -o TreeORAM 
-	./TreeORAM > testing.txt
+	./TreeORAM > ./Latency\ Results/2^20.txt
 
 test: 
 	clear

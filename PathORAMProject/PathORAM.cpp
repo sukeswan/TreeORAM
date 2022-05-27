@@ -28,7 +28,7 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 8; // size of tree (pick a factor of 2)
+const int N = 1048576; // size of tree (pick a factor of 2)
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 4; // Size of bucket is set to 4
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
@@ -36,15 +36,23 @@ const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf
 const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
 const float TEST_CAPACITY = 0.75; // percentage you want to fill the tree when testing
 const int MAX_DATA = int(N*TEST_CAPACITY); // # of random data strings to create
-const int DATA_SIZE = 1000; // length of random data strings 
+const int DATA_SIZE = 1024; // length of random data strings 
+const int ACCESS_COUNT = 100; 
 
 const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
-const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
+const int BUFFER_SIZE = 2*DATA_SIZE; 
+const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
+
+// -------------------- GLOBAL VARIABLES FOR TIMING RESULTS ------------------
+int totalAccessTime = 0; 
+int evictionTime = 0;
+int initTime = 0; 
+int programTime = 0; 
+// -------------------- GLOBAL VARIABLES FOR TIMING RESULTS -------------------
 
 void printArray(int* a){
     cout << "["; 
@@ -522,7 +530,6 @@ class Tree{
     Tree(){
         levels = log2(N);
         for (int i = 0; i < numNodes; i++){
-            delete nodes[i]; 
             nodes[i] = new Node(i);  // intialize dummy blocks for bucket deleted with ~
         }
     }
@@ -725,7 +732,7 @@ class Client{
     }
 
     void evict(Server* s, int leaf){
-
+        auto start = high_resolution_clock::now();
         int path[PATHSIZE]; // deleted
         getPath(leaf, path); // get the indexes of the path
         
@@ -759,6 +766,9 @@ class Client{
             nodey->bucket->encryptBucket(key); 
             s->tree->nodes[nodeID] = nodey;
         }
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        evictionTime += duration.count();
     }
 
     ~Client(){ //deallocate
@@ -867,66 +877,123 @@ void multipleTests(int iterations){
 
 }
 
+void latencyTests(){
 
-int main(){
-    cout << "hello world\n" << endl;
+    auto master_start = high_resolution_clock::now();
 
-    //multipleTests(1); 
 
+    // ____ CLOCK SETUP TIME _____
+    auto start = high_resolution_clock::now();
     Client* c1 = new Client(); 
     Server* s = new Server();
+    c1->initServer(s); 
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    initTime = duration.count();
+    // ____ CLOCK SETUP TIME _____
 
-    c1->initServer(s);
 
-    c1->write(s, 1,"Hello"); 
-    c1->write(s, 2,"Working"); 
-    c1->write(s, 3,"yay!");
+    // ____ CLOCK ACCESSS TIME _____
+    start = high_resolution_clock::now();
+    for(int i = 0; i < ACCESS_COUNT/2; i++){
+        c1->write(s,i,randomAlphaString(DATA_SIZE)); // initially fill tree with data
+    }
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    int writes = duration.count();
 
-    c1->write(s, 4,"more"); 
-    c1->write(s, 5,"data"); 
-    c1->write(s, 6,"is good");
+    start = high_resolution_clock::now();
+    for(int i = 0; i < ACCESS_COUNT/2; i++){
+        string data =  c1->read(s,i); //
+    }
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    int reads = duration.count();
 
-    c1->write(s, 7,"triple"); 
-    c1->write(s, 8,"checking"); 
-    c1->write(s, 9,"this stuff");
+    totalAccessTime = (reads + writes) / ACCESS_COUNT; 
+    // ____ CLOCK ACCESSS TIME _____
 
-    c1->write(s, 10,"a"); 
-    c1->write(s, 11,"b"); 
-    c1->write(s, 12,"c"); 
-    c1->write(s, 13,"d"); 
-    c1->write(s, 14,"e");
-    c1->write(s, 15,"f"); 
-    c1->write(s, 16,"g"); 
-    c1->write(s, 17,"h");
-    c1->write(s,18,"i");
+    auto master_stop = high_resolution_clock::now();
+    auto master_duration = duration_cast<microseconds>(master_stop - master_start);
+    programTime = master_duration.count();
 
-    c1->write(s, 19,"j"); 
-    c1->write(s, 20,"k"); 
 
-    c1->write(s, 21,"l");
-    c1->write(s, 22,"m");
-    c1->write(s, 23,"n");
-    c1->write(s, 24,"o");
-    c1->write(s, 25,"p");
-    c1->write(s, 26,"q");
-    c1->write(s,27,"r");
-    c1->write(s, 28,"s");
-    c1->write(s,29,"t");
+    cout << "PathORAM Results for Tree of Size 2^" << log2(N) << " (" << N << ")"  << endl; 
+    cout << "Tree Accesssed " << ACCESS_COUNT << " times" << endl; 
+    cout << "Data strings of length " << DATA_SIZE << " (1024 is 1 KB)" << endl;  
 
-    string hello = c1->read(s, 1); 
+    cout << "\nTotal Progam Time: " << programTime << " microseconds" << endl; 
+    cout << "Setup Latency: " << initTime << " microseconds" << endl; 
+    cout << "Average Data Access Latency: " << totalAccessTime << " microseconds" << endl; 
+    cout << "Average Eviction Latency: " << (evictionTime / ACCESS_COUNT)  << " microseconds" << endl;  
 
-    string working = c1->read(s, 2); 
-    string yay = c1->read(s, 3);
+    cout << "This number should be close to 0 : " << (programTime - (totalAccessTime * ACCESS_COUNT) - initTime) << endl; 
 
-    string more = c1->read(s, 4); 
-    string data = c1->read(s, 5); 
-    string good = c1->read(s, 6);
+}
 
-    c1->printClient(); 
-    s->printServer(); 
+
+int main(){
+
+    latencyTests(); 
+
+    // cout << "hello world\n" << endl;
+
+    // multipleTests(1); 
+
+    // Client* c1 = new Client(); 
+    // Server* s = new Server();
+
+    // c1->initServer(s);
+
+    // c1->write(s, 1,"Hello"); 
+    // c1->write(s, 2,"Working"); 
+    // c1->write(s, 3,"yay!");
+
+    // c1->write(s, 4,"more"); 
+    // c1->write(s, 5,"data"); 
+    // c1->write(s, 6,"is good");
+
+    // c1->write(s, 7,"triple"); 
+    // c1->write(s, 8,"checking"); 
+    // c1->write(s, 9,"this stuff");
+
+    // c1->write(s, 10,"a"); 
+    // c1->write(s, 11,"b"); 
+    // c1->write(s, 12,"c"); 
+    // c1->write(s, 13,"d"); 
+    // c1->write(s, 14,"e");
+    // c1->write(s, 15,"f"); 
+    // c1->write(s, 16,"g"); 
+    // c1->write(s, 17,"h");
+    // c1->write(s,18,"i");
+
+    // c1->write(s, 19,"j"); 
+    // c1->write(s, 20,"k"); 
+
+    // c1->write(s, 21,"l");
+    // c1->write(s, 22,"m");
+    // c1->write(s, 23,"n");
+    // c1->write(s, 24,"o");
+    // c1->write(s, 25,"p");
+    // c1->write(s, 26,"q");
+    // c1->write(s,27,"r");
+    // c1->write(s, 28,"s");
+    // c1->write(s,29,"t");
+
+    // string hello = c1->read(s, 1); 
+
+    // string working = c1->read(s, 2); 
+    // string yay = c1->read(s, 3);
+
+    // string more = c1->read(s, 4); 
+    // string data = c1->read(s, 5); 
+    // string good = c1->read(s, 6);
+
+    // c1->printClient(); 
+    // s->printServer(); 
  
-    cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
+    // cout << hello << " " << working << " " << yay << " " << more << " " << data << " " << good << endl;
 
-    delete s; 
-    delete c1;
+    // delete s; 
+    // delete c1;
 }   

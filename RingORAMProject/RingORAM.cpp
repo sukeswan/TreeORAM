@@ -31,27 +31,35 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 1024; // size of tree (pick a factor of 2)
+const int N = 1048576; // size of tree (pick a factor of 2)
 const int numNodes = N*2-1; // number of nodes in tree ~2N 
 const int BUCKETSIZE = 7; // Size of bucket is set to 7
 const int Z = 4; // max number of real blocks per bucket
 const int S = 3; // max number of dummy blocks per bucket
-const int A = 1; // evict after every A accesses 
+const int A = 2; // evict after every A accesses 
 
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
-const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
 const float TEST_CAPACITY = 0.75; // percentage you want to fill the tree when testing
 const int MAX_DATA = int(N*TEST_CAPACITY); // # of random data strings to create
-const int DATA_SIZE = 1024; // length of random data strings 
+const int ACCESS_COUNT = 100; 
+const int DATA_SIZE = 1024; // 1KB length of random data strings 
 
 const int KEY_SIZE = 256; // for AES
 const int IV_SIZE = 128; 
 const int BYTE_SIZE = 8; 
-const int BUFFER_SIZE = 1024; 
-const bool ENCRYPTION=false;  // turn encryption on/off, helpful for debugging
+const int BUFFER_SIZE = 2*DATA_SIZE; 
+const bool ENCRYPTION=true;  // turn encryption on/off, helpful for debugging
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
+
+
+// -------------------- GLOBAL VARIABLES FOR TIMING RESULTS ------------------
+int totalAccessTime = 0; 
+int evictionTime = 0;
+int initTime = 0; 
+int programTime = 0; 
+// -------------------- GLOBAL VARIABLES FOR TIMING RESULTS -------------------
 
 void printArray(int* a){
     cout << "["; 
@@ -834,12 +842,6 @@ class Client{
         s->tree->nodes[index] = n; 
     }
 
-    void storeBlock(Server* s, Block* b, int nodeID, int offset){
-        b->easy_encrypt(key);
-        delete s->tree->nodes[nodeID]->bucket->blocks[offset];
-        s->tree->nodes[nodeID]->bucket->blocks[offset] = b;  
-    }
-
     Node* fetch(Server* s,int nid){ // fetch a node from the server and replace with dummy node
 
         Node* dummy = new Node();
@@ -1014,11 +1016,13 @@ class Client{
 
     }
 
-    void write(Server* s, int uid, string data){
+    void write(Server* s, int uid, string data){\
 
         accesses +=1; 
 
         if(position_map.find(uid) == position_map.end()){ // if uid not in position map (first write to tree)
+
+
             position_map[uid] = randomLeaf(); // assign a leaf node
             int leaf = position_map[uid];
             fillStashLight(s,leaf,uid); // fetch path from stash
@@ -1046,6 +1050,7 @@ class Client{
     }
 
     void evict(Server* s){
+        auto start = high_resolution_clock::now();
 
         if(accesses != A){ // if A accesses have not happened, do not evcit
             return; 
@@ -1098,6 +1103,9 @@ class Client{
         if (evictingPath == (smallLeaf() - 1)){
             evictingPath = bigLeaf();
         }
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        evictionTime += duration.count();
     }
 
     ~Client(){ //deallocate
@@ -1206,10 +1214,65 @@ void multipleTests(int iterations){
 
 }
 
-int main(){
-    cout << "hello world\n" << endl;
+void latencyTests(){
 
-    multipleTests(1); 
+    auto master_start = high_resolution_clock::now();
+
+
+    // ____ CLOCK SETUP TIME _____
+    auto start = high_resolution_clock::now();
+    Client* c1 = new Client(); 
+    Server* s = new Server();
+    c1->initServer(s); 
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    initTime = duration.count();
+    // ____ CLOCK SETUP TIME _____
+
+
+    // ____ CLOCK ACCESSS TIME _____
+    start = high_resolution_clock::now();
+    for(int i = 0; i < ACCESS_COUNT/2; i++){
+        c1->write(s,i,randomAlphaString(DATA_SIZE)); // initially fill tree with data
+    }
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    int writes = duration.count();
+
+    start = high_resolution_clock::now();
+    for(int i = 0; i < ACCESS_COUNT/2; i++){
+        string data =  c1->read(s,i); //
+    }
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    int reads = duration.count();
+
+    totalAccessTime = (reads + writes) / ACCESS_COUNT; 
+    // ____ CLOCK ACCESSS TIME _____
+
+    auto master_stop = high_resolution_clock::now();
+    auto master_duration = duration_cast<microseconds>(master_stop - master_start);
+    programTime = master_duration.count();
+
+
+    cout << "RingORAM Results for Tree of Size 2^" << log2(N) << " (" << N << ")"  << endl; 
+    cout << "Tree Accesssed " << ACCESS_COUNT << " times" << endl; 
+    cout << "Data strings of length " << DATA_SIZE << " (1024 is 1 KB)" << endl;  
+    cout << "Hyperparameters " << "Z=" << Z << " S=" << S  << " A=" << A << endl;  
+
+    cout << "\nTotal Progam Time: " << programTime << " microseconds" << endl; 
+    cout << "Setup Latency: " << initTime << " microseconds" << endl; 
+    cout << "Average Data Access Latency: " << totalAccessTime << " microseconds" << endl; 
+    cout << "Average Eviction Latency: " << (evictionTime / ACCESS_COUNT)  << " microseconds" << endl;  
+
+    cout << "This number should be close to 0 : " << (programTime - (totalAccessTime * ACCESS_COUNT) - initTime) << endl; 
+    
+
+}
+
+int main(){
+
+    latencyTests(); 
 
     // unsigned char key[KEY_SIZE/BYTE_SIZE];
     // generateKey(key); 

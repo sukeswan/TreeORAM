@@ -1,12 +1,9 @@
-hello world
+PathORAM Results for Tree of Size 2^18 (262144)
+Tree Accesssed 100 times
+Data strings of length 1024 (1024 is 1 KB)
 
-Results for Tree of Size 2^18 (262144)
-Tree filled to 75%
-Data strings of length 1000
-
-___ Average Read Latency in microseconds ___
-[632, ]
-___ Average Write Latency in microseconds ___
-[638, ]
-___ Average Data Access Latency in microseconds ___
-[635, ]
+Total Progam Time: 10914510 microseconds
+Setup Latency: 10840337 microseconds
+Average Data Access Latency: 741 microseconds
+Average Eviction Latency: 272 microseconds
+This number should be close to 0 : 73
