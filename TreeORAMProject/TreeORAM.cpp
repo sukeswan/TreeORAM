@@ -30,12 +30,12 @@ class Client;
 
 // -------------------------- CHECK THESE PARAMETERS ------------------------
 
-const int N = 1048576; // size of tree
-const int numNodes = N*2-1; // number of nodes in tree ~2N 
-const int BUCKETSIZE = 20; // Size of bucket is logN        *** MANUAL FILL ***
+const int N = 262144*4; // size of tree
+const int numNodes = N*2-1; // number of nodes in tree ~2N -
+const int BUCKETSIZE = 4; // Size of bucket is logN        *** MANUAL FILL ***
 const string DUMMY = "Dummy"; // Dummy data stored in dummy blocks 
 const int PATHSIZE  = (log2(N)+1); // length of the path from root to leaf 
-const int THREADS = 1; // # of threads to use (hardware concurrency for this laptop is 12)
+const int THREADS = 12; // # of threads to use (hardware concurrency for this laptop is 12)
 const float TEST_CAPACITY = 0.75; // percentage you want to fill the tree when testing
 const int MAX_DATA = int(N*TEST_CAPACITY); // # of random data strings to create
 const int DATA_SIZE = 1024;// length of random data strings

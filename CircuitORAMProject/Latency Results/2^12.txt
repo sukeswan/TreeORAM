@@ -2,8 +2,8 @@ CircuitORAM Results for Tree of Size 2^12 (4096)
 Tree Accesssed 100 times
 Data strings of length 1024 (1024 is 1 KB)
 
-Total Progam Time: 292343 microseconds
-Setup Latency: 168472 microseconds
-Average Data Access Latency: 1238 microseconds
-Average Eviction Latency: 911 microseconds
-This number should be close to 0 : 71
+Total Progam Time: 144418 microseconds
+Setup Latency: 79799 microseconds
+Average Data Access Latency: 646 microseconds
+Average Eviction Latency: 478 microseconds
+This number should be close to 0 : 19

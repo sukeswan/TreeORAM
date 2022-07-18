@@ -1,0 +1,9 @@
+TreeORAM Results for Tree of Size 2^12 (4096)
+Tree Accesssed 100 times
+Data strings of length 1024 (1024 is 1 KB)
+
+Total Progam Time: 1769696 microseconds
+Setup Latency: 517034 microseconds
+Average Data Access Latency: 12526 microseconds
+Average Eviction Latency: 6827 microseconds
+This number should be close to 0 : 62
